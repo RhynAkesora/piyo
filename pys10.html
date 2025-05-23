@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ぴよ氏の冒険</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ffb6c1, #ffc0cb, #ff69b4);
+            font-family: 'Courier New', monospace;
+            user-select: none;
+            touch-action: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 1000px;
+            max-height: 550px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 40%, #FFB6C1 70%, #FFC0CB 100%);
+            border-radius: 0;
+            overflow: hidden;
+        }
+        
+        @media (min-width: 1020px) {
+            #gameContainer {
+                border: 6px solid #ff1493;
+                border-radius: 15px;
+                box-shadow: 0 12px 40px rgba(255,20,147,0.4);
+                width: 1000px;
+                height: 550px;
+            }
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            object-fit: contain;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 4vw;
+            text-shadow: 2px 2px 4px rgba(255,20,147,0.8);
+            font-weight: bold;
+            z-index: 10;
+            line-height: 1.2;
+        }
+        
+        @media (min-width: 1020px) {
+            #ui {
+                font-size: 22px;
+                top: 15px;
+                left: 15px;
+            }
+        }
+        
+        #pauseButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 5vw;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 15;
+            font-weight: bold;
+        }
+        
+        @media (min-width: 1020px) {
+            #pauseButton {
+                font-size: 24px;
+                top: 15px;
+                right: 15px;
+                padding: 12px;
+            }
+        }
+        
+        #startScreen, #pauseScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+        
+        #startScreen.hidden, #pauseScreen.hidden {
+            display: none;
+        }
+        
+        #titleCanvas {
+            border: 4px solid #8B4513;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            width: 60vw;
+            height: 60vw;
+            max-width: 350px;
+            max-height: 350px;
+        }
+        
+        .game-button {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 5vw;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(255,20,147,0.4);
+            font-family: 'Courier New', monospace;
+            margin: 8px;
+            transition: all 0.3s ease;
+            min-width: 60vw;
+            max-width: 300px;
+        }
+        
+        @media (min-width: 1020px) {
+            .game-button {
+                font-size: 20px;
+                padding: 18px 35px;
+                min-width: auto;
+            }
+        }
+        
+        .game-button:hover {
+            background: linear-gradient(135deg, #ff1493, #dc143c);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,20,147,0.6);
+        }
+        
+        .instruction-text {
+            color: white;
+            font-size: 4vw;
+            text-align: center;
+            margin: 5px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            font-weight: bold;
+            padding: 0 10px;
+        }
+        
+        @media (min-width: 1020px) {
+            .instruction-text {
+                font-size: 16px;
+                margin: 8px 0;
+            }
+        }
+        
+        .game-title {
+            font-size: 7vw;
+            color: #ffd700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        @media (min-width: 1020px) {
+            .game-title {
+                font-size: 28px;
+                margin-bottom: 20px;
+            }
+        }
+        
+        .touch-area {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            background: rgba(255,182,193,0.2);
+            border: 2px dashed rgba(255,255,255,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4vw;
+            text-shadow: 1px 1px 2px rgba(255,20,147,0.8);
+            opacity: 0.4;
+            transition: opacity 0.3s;
+            font-weight: bold;
+            z-index: 5;
+        }
+        
+        @media (min-width: 1020px) {
+            .touch-area {
+                font-size: 18px;
+            }
+        }
+        
+        .touch-area.active {
+            opacity: 0.8;
+            background: rgba(255,182,193,0.4);
+        }
+        
+        #leftArea {
+            left: 0;
+            width: 40%;
+        }
+        
+        #rightArea {
+            right: 0;
+            width: 60%;
+        }
+        
+        @media (max-width: 1019px) {
+            .touch-area {
+                opacity: 0.6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1000" height="550"></canvas>
+        
+        <div id="startScreen">
+            <div class="game-title">🐣 ぴよ氏の冒険</div>
+            <canvas id="titleCanvas" width="350" height="350"></canvas>
+            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
+            <div class="instruction-text">👈 左エリア: 移動 / 👆 右エリア: ジャンプ</div>
+            <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
+            <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
+                スペースキーでも開始できます
+            </div>
+        </div>
+        
+        <div id="pauseScreen" class="hidden">
+            <div class="game-title">⏸️ ポーズ中</div>
+            <button id="resumeButton" class="game-button" onclick="pauseGame()">▶️ 再開</button>
+            <button id="restartButton" class="game-button" onclick="resetGame()">🔄 リスタート</button>
+            <div class="instruction-text">画面をタップまたはスペースキーで再開</div>
+        </div>
+        
+        <div id="leftArea" class="touch-area">🏃‍♀️ 移動</div>
+        <div id="rightArea" class="touch-area">⭐ ジャンプ</div>
+        
+        <button id="pauseButton" onclick="pauseGame()">⏸️</button>
+        
+        <div id="ui">
+            <div>📏 <span id="distance">0</span>m</div>
+            <div>✨ <span id="score">0</span></div>
+            <div>💖 <span id="lives">3</span></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const titleCanvas = document.getElementById('titleCanvas');
+        const titleCtx = titleCanvas.getContext('2d');
+        
+        ctx.imageSmoothingEnabled = false;
+        titleCtx.imageSmoothingEnabled = false;
+        
+        const GAME_WIDTH = 1000;
+        const GAME_HEIGHT = 550;
+        const GRAVITY = 0.7;
+        const JUMP_FORCE = -16;
+        const MOVE_SPEED = 6;
+        const AUTO_SCROLL_SPEED = 2.5;
+        
+        let gameState = {
+            score: 0,
+            lives: 3,
+            camera: { x: 0, y: 0 },
+            input: { left: false, right: false, jump: false, jumpPressed: false },
+            time: 0,
+            gameStarted: false,
+            gamePaused: false,
+            enemySpawnTimer: 0,
+            platformSpawnTimer: 0,
+            coinSpawnTimer: 0,
+            flyingEnemySpawnTimer: 0,
+            powerUpSpawnTimer: 0,
+            distance: 0,
+            gameSpeed: AUTO_SCROLL_SPEED,
+            lastTerrainX: 0,
+            powerUpActive: false,
+            powerUpTimer: 0,
+            powerUpType: null
+        };
+        
+        let player = {
+            x: 150,
+            y: 350,
+            width: 48,
+            height: 48,
+            velX: 0,
+            velY: 0,
+            onGround: false,
+            facing: 'right',
+            animFrame: 0
+        };
+        
+        let coins = [];
+        let enemies = [];
+        let platforms = [];
+        let terrain = [];
+        let flyingEnemies = [];
+        let powerUps = [];
+        
+        // タイトル画面の描画
+        function drawTitleScreen() {
+            console.log('タイトル画面を描画中...');
+            
+            // キャンバスサイズ取得
+            const canvasWidth = titleCanvas.width;
+            const canvasHeight = titleCanvas.height;
+            
+            // 背景グラデーション
+            const bgGradient = titleCtx.createRadialGradient(canvasWidth/2, canvasHeight/2, 50, canvasWidth/2, canvasHeight/2, 200);
+            bgGradient.addColorStop(0, '#f0dcc9');
+            bgGradient.addColorStop(0.7, '#d4b896');
+            bgGradient.addColorStop(1, '#c4a47c');
+            titleCtx.fillStyle = bgGradient;
+            titleCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+            
+            // 枠の描画
+            titleCtx.fillStyle = '#8B4513';
+            titleCtx.fillRect(25, 60, canvasWidth - 50, canvasHeight - 120);
+            titleCtx.fillStyle = '#D2B48C';
+            titleCtx.fillRect(30, 65, canvasWidth - 60, canvasHeight - 130);
+            
+            // タイトル背景
+            titleCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            titleCtx.fillRect(30, 20, canvasWidth - 60, 50);
+            
+            // タイトルテキスト
+            titleCtx.fillStyle = '#FFD700';
+            titleCtx.font = 'bold 24px serif';
+            titleCtx.textAlign = 'center';
+            titleCtx.strokeStyle = '#8B4513';
+            titleCtx.lineWidth = 2;
+            titleCtx.strokeText('ぴよ氏の冒険', canvasWidth/2, 50);
+            titleCtx.fillText('ぴよ氏の冒険', canvasWidth/2, 50);
+            
+            // サブタイトル
+            titleCtx.fillStyle = '#2F4F4F';
+            titleCtx.font = 'bold 16px monospace';
+            titleCtx.fillText('エンドレスランナー', canvasWidth/2, canvasHeight/2);
+            titleCtx.fillText('どこまで行けるかな？', canvasWidth/2, canvasHeight/2 + 25);
+            
+            // 簡単なキャラクター描画
+            titleCtx.fillStyle = '#ffdbac';
+            titleCtx.fillRect(canvasWidth/2 - 15, canvasHeight/2 + 50, 30, 40);
+            
+            titleCtx.fillStyle = '#ff69b4';
+            titleCtx.fillRect(canvasWidth/2 - 10, canvasHeight/2 + 40, 20, 15);
+            
+            titleCtx.fillStyle = '#000000';
+            titleCtx.fillRect(canvasWidth/2 - 8, canvasHeight/2 + 45, 4, 4);
+            titleCtx.fillRect(canvasWidth/2 + 4, canvasHeight/2 + 45, 4, 4);
+            
+            console.log('タイトル画面描画完了');
+        }
+        
+        function initTerrain() {
+            terrain = [];
+            for (let x = 0; x < 2000; x += 100) {
+                terrain.push({
+                    x: x,
+                    y: 420,
+                    width: 100,
+                    height: 130,
+                    type: 'ground'
+                });
+            }
+            gameState.lastTerrainX = 1900;
+        }
+        
+        function generateTerrain() {
+            const lastTerrain = terrain[terrain.length - 1];
+            if (!lastTerrain) return;
+            
+            const nextX = gameState.lastTerrainX + 100;
+            const terrainType = Math.random();
+            
+            if (terrainType < 0.7) {
+                terrain.push({
+                    x: nextX,
+                    y: 420,
+                    width: 100,
+                    height: 130,
+                    type: 'ground'
+                });
+            } else if (terrainType < 0.85) {
+                const holeWidth = 120 + Math.random() * 100;
+                terrain.push({
+                    x: nextX,
+                    y: 420,
+                    width: 0,
+                    height: 0,
+                    type: 'hole'
+                });
+                
+                terrain.push({
+                    x: nextX + holeWidth,
+                    y: 420,
+                    width: 100,
+                    height: 130,
+                    type: 'ground'
+                });
+                gameState.lastTerrainX = nextX + holeWidth;
+                return;
+            } else {
+                const elevation = 60 + Math.random() * 40;
+                terrain.push({
+                    x: nextX,
+                    y: 420 - elevation,
+                    width: 100,
+                    height: 130 + elevation,
+                    type: 'elevated'
+                });
+            }
+            
+            gameState.lastTerrainX = nextX;
+        }
+        
+        function manageTerrain() {
+            terrain = terrain.filter(t => t.x + t.width > gameState.camera.x - 200);
+            
+            while (gameState.lastTerrainX < gameState.camera.x + GAME_WIDTH + 500) {
+                generateTerrain();
+            }
+        }
+        
+        function spawnRandomPlatform() {
+            const platformTypes = ['cloud', 'cloud', 'floating_ground'];
+            const type = platformTypes[Math.floor(Math.random() * platformTypes.length)];
+            
+            return {
+                x: gameState.camera.x + GAME_WIDTH + Math.random() * 200,
+                y: 200 + Math.random() * 150,
+                width: 120 + Math.random() * 80,
+                height: 30,
+                type: type
+            };
+        }
+        
+        function spawnRandomCoin() {
+            return {
+                x: gameState.camera.x + GAME_WIDTH + Math.random() * 300,
+                y: 180 + Math.random() * 200,
+                width: 32,
+                height: 32,
+                collected: false,
+                animFrame: Math.random() * 20
+            };
+        }
+        
+        function spawnRandomEnemy() {
+            const enemyTypes = ['chick', 'chick', 'golden_chick', 'mama_chick'];
+            const randomType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+            
+            let width, height, speed;
+            switch(randomType) {
+                case 'golden_chick':
+                    width = 46;
+                    height = 42;
+                    speed = 1 + Math.random() * 1.5;
+                    break;
+                case 'mama_chick':
+                    width = 50;
+                    height = 46;
+                    speed = 0.5 + Math.random() * 1;
+                    break;
+                default:
+                    width = 42;
+                    height = 38;
+                    speed = 1 + Math.random() * 1;
+            }
+            
+            return {
+                x: gameState.camera.x + GAME_WIDTH + Math.random() * 200,
+                y: 380,
+                width: width,
+                height: height,
+                velX: -speed,
+                type: randomType,
+                animFrame: Math.floor(Math.random() * 100)
+            };
+        }
+        
+        function spawnFlyingEnemy() {
+            return {
+                x: gameState.camera.x + GAME_WIDTH + Math.random() * 300,
+                y: 100 + Math.random() * 200,
+                width: 44,
+                height: 40,
+                velX: -(2 + Math.random() * 2),
+                velY: Math.sin(Math.random() * Math.PI * 2) * 0.5,
+                type: 'flying_chick',
+                animFrame: Math.floor(Math.random() * 100),
+                waveOffset: Math.random() * Math.PI * 2
+            };
+        }
+        
+        function spawnPowerUp() {
+            const powerUpTypes = ['lemon_can', 'speed_boost', 'shield'];
+            const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+            
+            return {
+                x: gameState.camera.x + GAME_WIDTH + Math.random() * 200,
+                y: 250 + Math.random() * 100,
+                width: 36,
+                height: 36,
+                type: type,
+                collected: false,
+                animFrame: 0,
+                floatOffset: Math.random() * Math.PI * 2
+            };
+        }
+        
+        function manageObjects() {
+            const leftBound = gameState.camera.x - 200;
+            const rightBound = gameState.camera.x + GAME_WIDTH + 200;
+            
+            enemies = enemies.filter(e => e.x > leftBound && e.x < rightBound);
+            flyingEnemies = flyingEnemies.filter(e => e.x > leftBound && e.x < rightBound);
+            platforms = platforms.filter(p => p.x + p.width > leftBound && p.x < rightBound);
+            coins = coins.filter(c => c.x > leftBound && c.x < rightBound);
+            powerUps = powerUps.filter(p => p.x > leftBound && p.x < rightBound);
+            
+            gameState.enemySpawnTimer++;
+            gameState.platformSpawnTimer++;
+            gameState.coinSpawnTimer++;
+            gameState.flyingEnemySpawnTimer++;
+            gameState.powerUpSpawnTimer++;
+            
+            if (gameState.enemySpawnTimer > 90 && Math.random() < 0.4) {
+                enemies.push(spawnRandomEnemy());
+                gameState.enemySpawnTimer = 0;
+            }
+            
+            if (gameState.flyingEnemySpawnTimer > 180 && Math.random() < 0.15) {
+                flyingEnemies.push(spawnFlyingEnemy());
+                gameState.flyingEnemySpawnTimer = 0;
+            }
+            
+            if (gameState.platformSpawnTimer > 120 && Math.random() < 0.6) {
+                platforms.push(spawnRandomPlatform());
+                gameState.platformSpawnTimer = 0;
+            }
+            
+            if (gameState.coinSpawnTimer > 60 && Math.random() < 0.5) {
+                coins.push(spawnRandomCoin());
+                gameState.coinSpawnTimer = 0;
+            }
+            
+            if (gameState.powerUpSpawnTimer > 300 && Math.random() < 0.1) {
+                powerUps.push(spawnPowerUp());
+                gameState.powerUpSpawnTimer = 0;
+            }
+        }
+        
+        function drawPlayer(x, y) {
+            ctx.save();
+            
+            if (gameState.powerUpType === 'shield') {
+                ctx.strokeStyle = '#4169e1';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(x - 8, y - 8, player.width + 16, player.height + 16);
+                ctx.setLineDash([]);
+            }
+            
+            if (gameState.powerUpType === 'lemon_can') {
+                ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                ctx.fillRect(x - 4, y - 4, player.width + 8, player.height + 8);
+            }
+            
+            if (gameState.powerUpType === 'speed_boost') {
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+                ctx.fillRect(x - 4, y - 4, player.width + 8, player.height + 8);
+            }
+            
+            if (player.facing === 'left') {
+                ctx.scale(-1, 1);
+                x = -x - player.width;
+            }
+            
+            const walkFrame = Math.floor(player.animFrame / 8) % 4;
+            const isWalking = Math.abs(player.velX) > 0.5 || gameState.gameSpeed > 0;
+            
+            ctx.fillStyle = '#f5f5dc';
+            ctx.fillRect(x + 6, y + 2, 8, 12);
+            ctx.fillRect(x + 34, y + 2, 8, 12);
+            
+            ctx.fillStyle = '#ffb6c1';
+            ctx.fillRect(x + 8, y + 4, 4, 8);
+            ctx.fillRect(x + 36, y + 4, 4, 8);
+            
+            ctx.fillStyle = '#8b4513';
+            const leftOffset = isWalking ? Math.sin(walkFrame) * 2 : 0;
+            ctx.fillRect(x + 2 + leftOffset, y + 8, 10, 22);
+            ctx.fillRect(x + leftOffset, y + 12, 14, 18);
+            
+            const rightOffset = isWalking ? Math.sin(walkFrame + Math.PI) * 2 : 0;
+            ctx.fillRect(x + 36 + rightOffset, y + 8, 10, 22);
+            ctx.fillRect(x + 34 + rightOffset, y + 12, 14, 18);
+            
+            ctx.fillRect(x + 8, y + 4, 32, 16);
+            ctx.fillRect(x + 6, y + 8, 36, 14);
+            
+            ctx.fillStyle = '#fffacd';
+            ctx.fillRect(x + 8, y + 1, 32, 4);
+            
+            ctx.fillStyle = '#ff69b4';
+            ctx.fillRect(x + 18, y + 2, 12, 8);
+            
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(x + 12, y + 18, 24, 18);
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + 16, y + 22, 5, 5);
+            ctx.fillRect(x + 26, y + 24, 6, 1);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 17, y + 23, 2, 2);
+            
+            ctx.fillStyle = '#ff69b4';
+            ctx.fillRect(x + 20, y + 32, 6, 2);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 8, y + 34, 32, 12);
+            
+            ctx.fillStyle = '#ff1493';
+            ctx.fillRect(x + 16, y + 36, 16, 8);
+            
+            ctx.fillStyle = '#191970';
+            ctx.fillRect(x + 6, y + 44, 36, 4);
+            
+            ctx.fillStyle = '#ffdbac';
+            const armOffset = isWalking ? Math.sin(walkFrame * 2) * 1 : 0;
+            ctx.fillRect(x + 2, y + 36 + armOffset, 8, 10);
+            ctx.fillRect(x + 38, y + 36 - armOffset, 8, 10);
+            
+            player.animFrame++;
+            ctx.restore();
+        }
+        
+        function drawTerrain(terrain) {
+            if (terrain.type === 'hole') return;
+            
+            let baseColor = terrain.type === 'elevated' ? '#228B22' : '#90ee90';
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(terrain.x, terrain.y, terrain.width, terrain.height);
+            
+            ctx.fillStyle = '#32cd32';
+            for (let i = 0; i < terrain.width; i += 20) {
+                ctx.fillRect(terrain.x + i, terrain.y, 3, 8);
+                ctx.fillRect(terrain.x + i + 5, terrain.y, 2, 6);
+                ctx.fillRect(terrain.x + i + 10, terrain.y, 3, 7);
+            }
+        }
+        
+        function drawPlatform(platform) {
+            let baseColor = platform.type === 'cloud' ? '#ffffff' : '#deb887';
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+            
+            if (platform.type === 'cloud') {
+                ctx.fillStyle = '#f0f8ff';
+                for (let i = 0; i < platform.width; i += 25) {
+                    ctx.fillRect(platform.x + i, platform.y + 8, 18, 12);
+                }
+            }
+        }
+        
+        function drawCoin(coin, time) {
+            if (coin.collected) return;
+            
+            const sparkleFrame = Math.floor(time / 4) % 16;
+            const scale = 0.8 + Math.sin(sparkleFrame * Math.PI / 8) * 0.2;
+            
+            const centerX = coin.x + coin.width / 2;
+            const centerY = coin.y + coin.height / 2;
+            const size = coin.width * scale;
+            
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(centerX - size/4, centerY - size/2, size/2, size);
+            ctx.fillRect(centerX - size/2, centerY - size/4, size, size/2);
+            
+            if (sparkleFrame % 6 < 3) {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(centerX - 3, centerY - 8, 6, 3);
+                ctx.fillRect(centerX - 3, centerY + 5, 6, 3);
+                ctx.fillRect(centerX - 8, centerY - 3, 3, 6);
+                ctx.fillRect(centerX + 5, centerY - 3, 3, 6);
+            }
+        }
+        
+        function drawEnemy(enemy) {
+            let bodyColor, accentColor;
+            const bounce = Math.sin(enemy.animFrame / 3) * 1;
+            
+            switch(enemy.type) {
+                case 'golden_chick':
+                    bodyColor = '#ffd700';
+                    accentColor = '#ffed4e';
+                    break;
+                case 'mama_chick':
+                    bodyColor = '#fff8dc';
+                    accentColor = '#f0e68c';
+                    break;
+                default:
+                    bodyColor = '#ffff00';
+                    accentColor = '#ffff99';
+            }
+            
+            const currentY = enemy.y + bounce;
+            
+            ctx.fillStyle = bodyColor;
+            ctx.fillRect(enemy.x + 6, currentY + 12, enemy.width - 12, enemy.height - 18);
+            ctx.fillRect(enemy.x + 4, currentY + 8, enemy.width - 8, enemy.height - 14);
+            ctx.fillRect(enemy.x + 8, currentY + 4, enemy.width - 16, 12);
+            
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(enemy.x + 8, currentY + 10, enemy.width - 16, enemy.height - 20);
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(enemy.x + 12, currentY + 8, 4, 4);
+            ctx.fillRect(enemy.x + enemy.width - 16, currentY + 8, 4, 4);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(enemy.x + 13, currentY + 9, 2, 2);
+            ctx.fillRect(enemy.x + enemy.width - 15, currentY + 9, 2, 2);
+            
+            ctx.fillStyle = '#ffa500';
+            ctx.fillRect(enemy.x + enemy.width/2 - 2, currentY + 14, 4, 2);
+            
+            enemy.animFrame++;
+        }
+        
+        function drawFlyingEnemy(enemy) {
+            enemy.y += Math.sin(gameState.time * 0.05 + enemy.waveOffset) * 0.8;
+            
+            const bodyColor = '#ff69b4';
+            const accentColor = '#ff1493';
+            const bounce = Math.sin(enemy.animFrame / 2) * 0.5;
+            const currentY = enemy.y + bounce;
+            
+            ctx.fillStyle = '#ffffff';
+            const wingFlap = Math.sin(enemy.animFrame / 3) * 8;
+            ctx.fillRect(enemy.x - 8, currentY + 8 + wingFlap, 12, 6);
+            ctx.fillRect(enemy.x + enemy.width - 4, currentY + 8 - wingFlap, 12, 6);
+            
+            ctx.fillStyle = bodyColor;
+            ctx.fillRect(enemy.x + 6, currentY + 12, enemy.width - 12, enemy.height - 18);
+            ctx.fillRect(enemy.x + 4, currentY + 8, enemy.width - 8, enemy.height - 14);
+            ctx.fillRect(enemy.x + 8, currentY + 4, enemy.width - 16, 12);
+            
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(enemy.x + 8, currentY + 10, enemy.width - 16, enemy.height - 20);
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(enemy.x + 12, currentY + 8, 4, 4);
+            ctx.fillRect(enemy.x + enemy.width - 16, currentY + 8, 4, 4);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(enemy.x + 13, currentY + 9, 2, 2);
+            ctx.fillRect(enemy.x + enemy.width - 15, currentY + 9, 2, 2);
+            
+            ctx.fillStyle = '#ffa500';
+            ctx.fillRect(enemy.x + enemy.width/2 - 2, currentY + 14, 4, 2);
+            
+            enemy.animFrame++;
+        }
+        
+        function drawPowerUp(powerUp) {
+            if (powerUp.collected) return;
+            
+            const floatY = powerUp.y + Math.sin(gameState.time * 0.1 + powerUp.floatOffset) * 3;
+            const sparkle = Math.sin(gameState.time * 0.2) * 0.5 + 0.5;
+            
+            let baseColor, accentColor, emoji;
+            switch(powerUp.type) {
+                case 'lemon_can':
+                    baseColor = '#ffff00';
+                    accentColor = '#ffd700';
+                    emoji = '🍋';
+                    break;
+                case 'speed_boost':
+                    baseColor = '#00ff00';
+                    accentColor = '#32cd32';
+                    emoji = '⚡';
+                    break;
+                case 'shield':
+                    baseColor = '#4169e1';
+                    accentColor = '#1e90ff';
+                    emoji = '🛡️';
+                    break;
+            }
+            
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(powerUp.x + 4, floatY + 4, powerUp.width - 8, powerUp.height - 8);
+            
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(powerUp.x + 8, floatY + 8, powerUp.width - 16, powerUp.height - 16);
+            
+            ctx.fillStyle = `rgba(255, 255, 255, ${sparkle})`;
+            ctx.fillRect(powerUp.x + 6, floatY + 6, powerUp.width - 12, powerUp.height - 12);
+            
+            ctx.fillStyle = '#000000';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(emoji, powerUp.x + powerUp.width/2, floatY + powerUp.height/2 + 6);
+            
+            powerUp.animFrame++;
+        }
+        
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+        
+        function updatePlayer() {
+            if (gameState.powerUpActive) {
+                gameState.powerUpTimer--;
+                if (gameState.powerUpTimer <= 0) {
+                    gameState.powerUpActive = false;
+                    gameState.powerUpType = null;
+                }
+            }
+            
+            let currentSpeed = gameState.gameSpeed;
+            if (gameState.powerUpType === 'speed_boost') {
+                currentSpeed *= 0.5;
+            }
+            
+            gameState.camera.x += currentSpeed;
+            gameState.distance = Math.floor(gameState.camera.x / 10);
+            
+            if (gameState.input.left) {
+                player.velX = Math.max(player.velX - 1.2, -MOVE_SPEED);
+                player.facing = 'left';
+            } else if (gameState.input.right) {
+                player.velX = Math.min(player.velX + 1.2, MOVE_SPEED);
+                player.facing = 'right';
+            } else {
+                player.velX *= 0.85;
+            }
+            
+            let jumpForce = JUMP_FORCE;
+            if (gameState.powerUpType === 'lemon_can') {
+                jumpForce *= 1.3;
+            }
+            
+            if (gameState.input.jump && !gameState.input.jumpPressed && player.onGround) {
+                player.velY = jumpForce;
+                player.onGround = false;
+                gameState.input.jumpPressed = true;
+            }
+            
+            if (!gameState.input.jump) {
+                gameState.input.jumpPressed = false;
+            }
+            
+            player.velY += GRAVITY;
+            if (player.velY > 15) player.velY = 15;
+            
+            player.x += player.velX;
+            player.y += player.velY;
+            
+            if (player.x < gameState.camera.x + 50) {
+                player.x = gameState.camera.x + 50;
+            }
+            
+            player.onGround = false;
+            
+            for (let t of terrain) {
+                if (t.type !== 'hole' && checkCollision(player, t)) {
+                    if (player.velY > 0 && player.y < t.y) {
+                        player.y = t.y - player.height;
+                        player.velY = 0;
+                        player.onGround = true;
+                    }
+                }
+            }
+            
+            for (let platform of platforms) {
+                if (checkCollision(player, platform)) {
+                    if (player.velY > 0 && player.y < platform.y) {
+                        player.y = platform.y - player.height;
+                        player.velY = 0;
+                        player.onGround = true;
+                    }
+                }
+            }
+            
+            if (player.y > GAME_HEIGHT + 100) {
+                gameOver();
+            }
+            
+            gameState.gameSpeed = AUTO_SCROLL_SPEED + (gameState.distance / 1000) * 0.5;
+            if (gameState.gameSpeed > AUTO_SCROLL_SPEED * 2) {
+                gameState.gameSpeed = AUTO_SCROLL_SPEED * 2;
+            }
+        }
+        
+        function updateEnemies() {
+            for (let enemy of enemies) {
+                enemy.x += enemy.velX - gameState.gameSpeed;
+                
+                if (gameState.powerUpType === 'shield') continue;
+                
+                if (checkCollision(player, enemy)) {
+                    if (player.velY > 0 && player.y < enemy.y) {
+                        enemy.x = -1000;
+                        player.velY = JUMP_FORCE / 2;
+                        gameState.score += 200;
+                    } else {
+                        gameState.lives--;
+                        resetPlayerPosition();
+                        
+                        if (gameState.lives <= 0) {
+                            gameOver();
+                        }
+                    }
+                }
+            }
+            
+            for (let enemy of flyingEnemies) {
+                enemy.x += enemy.velX - gameState.gameSpeed;
+                
+                if (gameState.powerUpType === 'shield') continue;
+                
+                if (checkCollision(player, enemy)) {
+                    gameState.lives--;
+                    enemy.x = -1000;
+                    resetPlayerPosition();
+                    
+                    if (gameState.lives <= 0) {
+                        gameOver();
+                    }
+                }
+            }
+        }
+        
+        function updateCoins() {
+            for (let coin of coins) {
+                if (!coin.collected && checkCollision(player, coin)) {
+                    coin.collected = true;
+                    gameState.score += 100;
+                }
+            }
+        }
+        
+        function updatePowerUps() {
+            for (let powerUp of powerUps) {
+                if (!powerUp.collected && checkCollision(player, powerUp)) {
+                    powerUp.collected = true;
+                    gameState.score += 500;
+                    
+                    gameState.powerUpActive = true;
+                    gameState.powerUpType = powerUp.type;
+                    gameState.powerUpTimer = 300;
+                }
+            }
+        }
+        
+        function resetPlayerPosition() {
+            player.x = gameState.camera.x + 150;
+            player.y = 350;
+            player.velX = 0;
+            player.velY = 0;
+            
+            gameState.camera.x = Math.max(0, gameState.camera.x - 100);
+        }
+        
+        function gameOver() {
+            gameState.gameStarted = false;
+            
+            setTimeout(() => {
+                alert(`ゲームオーバー\n` +
+                      `それはちょっと世間は許してくれませんよ～\n\n` +
+                      `到達距離: ${gameState.distance}m\n` +
+                      `最終スコア: ${gameState.score}点`);
+                resetGame();
+            }, 500);
+        }
+        
+        function pauseGame() {
+            if (!gameState.gameStarted) return;
+            gameState.gamePaused = !gameState.gamePaused;
+            
+            if (gameState.gamePaused) {
+                document.getElementById('pauseScreen').classList.remove('hidden');
+                document.getElementById('pauseButton').textContent = '▶️';
+            } else {
+                document.getElementById('pauseScreen').classList.add('hidden');
+                document.getElementById('pauseButton').textContent = '⏸️';
+            }
+        }
+        
+        function startGame() {
+            console.log('ゲーム開始！');
+            gameState.gameStarted = true;
+            gameState.gamePaused = false;
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('pauseScreen').classList.add('hidden');
+        }
+        
+        function resetGame() {
+            gameState.score = 0;
+            gameState.lives = 3;
+            gameState.gameStarted = false;
+            gameState.gamePaused = false;
+            gameState.enemySpawnTimer = 0;
+            gameState.platformSpawnTimer = 0;
+            gameState.coinSpawnTimer = 0;
+            gameState.flyingEnemySpawnTimer = 0;
+            gameState.powerUpSpawnTimer = 0;
+            gameState.distance = 0;
+            gameState.gameSpeed = AUTO_SCROLL_SPEED;
+            gameState.camera.x = 0;
+            gameState.camera.y = 0;
+            gameState.powerUpActive = false;
+            gameState.powerUpTimer = 0;
+            gameState.powerUpType = null;
+            
+            player.x = 150;
+            player.y = 350;
+            player.velX = 0;
+            player.velY = 0;
+            player.onGround = false;
+            player.facing = 'right';
+            
+            coins = [];
+            enemies = [];
+            platforms = [];
+            flyingEnemies = [];
+            powerUps = [];
+            
+            initTerrain();
+            
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('pauseScreen').classList.add('hidden');
+            document.getElementById('pauseButton').textContent = '⏸️';
+        }
+        
+        function render() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
+            gradient.addColorStop(0, '#87ceeb');
+            gradient.addColorStop(0.25, '#98d8e8');
+            gradient.addColorStop(0.5, '#ffb6c1');
+            gradient.addColorStop(0.75, '#ffc0cb');
+            gradient.addColorStop(1, '#ff69b4');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            for (let i = 0; i < 15; i++) {
+                const x = (i * 220 - gameState.camera.x * 0.3 + gameState.time * 0.2) % (GAME_WIDTH + 180);
+                const y = 40 + Math.sin(i * 0.7 + gameState.time * 0.01) * 40;
+                
+                ctx.fillRect(x, y, 120, 35);
+                ctx.fillRect(x + 25, y - 12, 70, 60);
+                ctx.fillRect(x + 15, y + 8, 90, 25);
+                ctx.fillRect(x + 50, y - 18, 35, 45);
+            }
+            
+            ctx.save();
+            ctx.translate(-gameState.camera.x, 0);
+            
+            for (let t of terrain) {
+                if (t.x + t.width > gameState.camera.x - 100 && 
+                    t.x < gameState.camera.x + GAME_WIDTH + 100) {
+                    drawTerrain(t);
+                }
+            }
+            
+            for (let platform of platforms) {
+                if (platform.x + platform.width > gameState.camera.x - 100 && 
+                    platform.x < gameState.camera.x + GAME_WIDTH + 100) {
+                    drawPlatform(platform);
+                }
+            }
+            
+            const time = Date.now() / 50;
+            for (let coin of coins) {
+                if (!coin.collected && coin.x > gameState.camera.x - 100 && 
+                    coin.x < gameState.camera.x + GAME_WIDTH + 100) {
+                    drawCoin(coin, time);
+                }
+            }
+            
+            for (let enemy of enemies) {
+                if (enemy.x > gameState.camera.x - 100 && 
+                    enemy.x < gameState.camera.x + GAME_WIDTH + 100 && enemy.x > -100) {
+                    drawEnemy(enemy);
+                }
+            }
+            
+            for (let enemy of flyingEnemies) {
+                if (enemy.x > gameState.camera.x - 100 && 
+                    enemy.x < gameState.camera.x + GAME_WIDTH + 100 && enemy.x > -100) {
+                    drawFlyingEnemy(enemy);
+                }
+            }
+            
+            for (let powerUp of powerUps) {
+                if (!powerUp.collected && powerUp.x > gameState.camera.x - 100 && 
+                    powerUp.x < gameState.camera.x + GAME_WIDTH + 100) {
+                    drawPowerUp(powerUp);
+                }
+            }
+            
+            if (gameState.gameStarted) {
+                drawPlayer(player.x, player.y);
+            }
+            
+            ctx.restore();
+            
+            if (gameState.powerUpActive) {
+                const remainingTime = Math.ceil(gameState.powerUpTimer / 60);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(GAME_WIDTH - 200, 80, 180, 60);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'left';
+                
+                let powerUpName = '';
+                switch(gameState.powerUpType) {
+                    case 'lemon_can':
+                        powerUpName = '🍋 ジャンプ強化';
+                        break;
+                    case 'speed_boost':
+                        powerUpName = '⚡ スロー効果';
+                        break;
+                    case 'shield':
+                        powerUpName = '🛡️ 無敵状態';
+                        break;
+                }
+                
+                ctx.fillText(powerUpName, GAME_WIDTH - 190, 100);
+                ctx.fillText(`残り時間: ${remainingTime}秒`, GAME_WIDTH - 190, 120);
+            }
+            
+            if (gameState.gamePaused) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 48px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('⏸️ ポーズ中', GAME_WIDTH/2, GAME_HEIGHT/2);
+            }
+            
+            gameState.time++;
+        }
+        
+        function gameLoop() {
+            if (gameState.gameStarted && !gameState.gamePaused) {
+                updatePlayer();
+                updateEnemies();
+                updateCoins();
+                updatePowerUps();
+                manageTerrain();
+                manageObjects();
+            }
+            
+            render();
+            
+            document.getElementById('distance').textContent = gameState.distance;
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('lives').textContent = gameState.lives;
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // タッチイベント処理
+        const leftArea = document.getElementById('leftArea');
+        const rightArea = document.getElementById('rightArea');
+        
+        leftArea.addEventListener('touchstart', (e) => {
+            if (!gameState.gameStarted || gameState.gamePaused) return;
+            e.preventDefault();
+            leftArea.classList.add('active');
+            
+            const touch = e.touches[0];
+            const rect = leftArea.getBoundingClientRect();
+            const touchX = touch.clientX - rect.left;
+            
+            if (touchX < rect.width / 2) {
+                gameState.input.left = true;
+                gameState.input.right = false;
+            } else {
+                gameState.input.right = true;
+                gameState.input.left = false;
+            }
+        });
+        
+        leftArea.addEventListener('touchmove', (e) => {
+            if (!gameState.gameStarted || gameState.gamePaused) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = leftArea.getBoundingClientRect();
+            const touchX = touch.clientX - rect.left;
+            
+            if (touchX < rect.width / 2) {
+                gameState.input.left = true;
+                gameState.input.right = false;
+            } else {
+                gameState.input.right = true;
+                gameState.input.left = false;
+            }
+        });
+        
+        leftArea.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            leftArea.classList.remove('active');
+            gameState.input.left = false;
+            gameState.input.right = false;
+        });
+        
+        rightArea.addEventListener('touchstart', (e) => {
+            if (!gameState.gameStarted || gameState.gamePaused) return;
+            e.preventDefault();
+            rightArea.classList.add('active');
+            gameState.input.jump = true;
+        });
+        
+        rightArea.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            rightArea.classList.remove('active');
+            gameState.input.jump = false;
+        });
+        
+        // ポーズ画面タップで再開
+        document.getElementById('pauseScreen').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('pauseScreen')) {
+                pauseGame();
+            }
+        });
+        
+        // キーボードイベント
+        window.addEventListener('keydown', (e) => {
+            if (!gameState.gameStarted && (e.key === ' ' || e.key === 'Enter')) {
+                e.preventDefault();
+                startGame();
+                return;
+            }
+            
+            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+                e.preventDefault();
+                pauseGame();
+                return;
+            }
+            
+            if (gameState.gamePaused && e.key === ' ') {
+                e.preventDefault();
+                pauseGame();
+                return;
+            }
+            
+            if (!gameState.gameStarted || gameState.gamePaused) return;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    gameState.input.left = true;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    gameState.input.right = true;
+                    break;
+                case ' ':
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    gameState.input.jump = true;
+                    e.preventDefault();
+                    break;
+            }
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    gameState.input.left = false;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    gameState.input.right = false;
+                    break;
+                case ' ':
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    gameState.input.jump = false;
+                    break;
+            }
+        });
+        
+        // ページフォーカス管理
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && gameState.gameStarted && !gameState.gamePaused) {
+                pauseGame();
+            }
+        });
+        
+        window.addEventListener('blur', () => {
+            if (gameState.gameStarted && !gameState.gamePaused) {
+                pauseGame();
+            }
+        });
+        
+        // ビューポート対応
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const rect = container.getBoundingClientRect();
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+        }
+        
+        // 初期化
+        function initialize() {
+            console.log('ゲーム初期化開始...');
+            drawTitleScreen();
+            initTerrain();
+            resizeCanvas();
+            requestAnimationFrame(gameLoop);
+            console.log('🐣 ぴよ氏の冒険 - 初期化完了！');
+        }
+        
+        // ゲーム開始
+        window.addEventListener('load', initialize);
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeCanvas, 100);
+        });
+    </script>
+</body>
+</html>
