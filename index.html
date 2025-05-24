@@ -2,7 +2,12 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="screen-orientation" content="landscape">
+    <meta name="x5-orientation" content="landscape">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>ぴよ氏の冒険</title>
     <style>
         * {
@@ -20,6 +25,30 @@
             touch-action: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
+            position: fixed;
+            width: 100%;
+        }
+        
+        @media screen and (orientation: portrait) {
+            body::before {
+                content: "🔄 画面を横向きにしてください 🔄";
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vh;
+                height: 100vw;
+                background: linear-gradient(135deg, #ffb6c1, #ffc0cb, #ff69b4);
+                color: white;
+                font-size: 24px;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+                transform: rotate(90deg);
+                transform-origin: left bottom;
+            }
         }
         
         body {
@@ -104,6 +133,7 @@
             align-items: center;
             z-index: 20;
             padding: 20px;
+            cursor: pointer;
         }
         
         #startScreen.hidden, #pauseScreen.hidden {
@@ -115,10 +145,12 @@
             border-radius: 12px;
             margin-bottom: 20px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            width: 80vw;
-            max-width: 350px;
+            width: auto;
+            max-width: 60vw;
+            max-height: 40vh;
             height: auto;
             object-fit: contain;
+            display: block;
         }
         
         .game-button {
@@ -226,14 +258,14 @@
     <div id="gameContainer">
         <canvas id="gameCanvas" width="1000" height="550"></canvas>
         
-        <div id="startScreen">
+        <div id="startScreen" onclick="handleStartScreenClick(event)">
             <div class="game-title">🐣 ぴよ氏の冒険</div>
-            <img id="titleImage" src="" alt="ぴよ氏の冒険">
+            <img id="titleImage" src="https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg" alt="ぴよ氏の冒険">
             <div class="instruction-text">どこまで遠くへ行けるかな？</div>
             <div class="instruction-text">👈 左エリア: 移動 / 👆 右エリア: ジャンプ</div>
             <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
             <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
-                スペースキーでも開始できます
+                画面をタップまたはスペースキーで開始
             </div>
         </div>
         
@@ -257,8 +289,17 @@
     </div>
 
     <script>
+        // 基本的な動作確認
+        console.log('=== ぴよ氏の冒険 スクリプト開始 ===');
+        
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        
+        if (!canvas || !ctx) {
+            console.error('Canvas要素またはコンテキストの取得に失敗しました');
+        } else {
+            console.log('Canvas要素の取得に成功');
+        }
         
         ctx.imageSmoothingEnabled = false;
         
@@ -311,6 +352,26 @@
         let terrain = [];
         let flyingEnemies = [];
         let powerUps = [];
+        
+        // ゲームループ
+        function gameLoop() {
+            if (gameState.gameStarted && !gameState.gamePaused) {
+                updatePlayer();
+                updateEnemies();
+                updateCoins();
+                updatePowerUps();
+                manageTerrain();
+                manageObjects();
+            }
+            
+            render();
+            
+            document.getElementById('distance').textContent = gameState.distance;
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('lives').textContent = gameState.lives;
+            
+            requestAnimationFrame(gameLoop);
+        }
         
         function initTerrain() {
             terrain = [];
@@ -893,9 +954,9 @@
                 gameOver();
             }
             
-            gameState.gameSpeed = AUTO_SCROLL_SPEED + (gameState.distance / 1000) * 0.5;
-            if (gameState.gameSpeed > AUTO_SCROLL_SPEED * 2) {
-                gameState.gameSpeed = AUTO_SCROLL_SPEED * 2;
+            gameState.gameSpeed = AUTO_SCROLL_SPEED + (gameState.distance / 2000) * 0.5;
+            if (gameState.gameSpeed > AUTO_SCROLL_SPEED * 1.5) {
+                gameState.gameSpeed = AUTO_SCROLL_SPEED * 1.5;
             }
         }
         
@@ -972,11 +1033,34 @@
         }
         
         function resetPlayerPosition() {
-            player.x = gameState.camera.x + 150;
-            player.y = 350;
-            player.velX = 0;
-            player.velY = 0;
+            // 画面上部から復活（安全な位置を確保）
+            const safeX = gameState.camera.x + 150;
             
+            // 地形の安全な位置を探す
+            let foundSafeGround = false;
+            let safeGroundX = safeX;
+            
+            // 現在のカメラ位置から前方の地形をチェック
+            for (let checkX = safeX; checkX < safeX + 400; checkX += 50) {
+                for (let t of terrain) {
+                    if (t.type !== 'hole' && 
+                        checkX >= t.x && 
+                        checkX <= t.x + t.width) {
+                        foundSafeGround = true;
+                        safeGroundX = checkX;
+                        break;
+                    }
+                }
+                if (foundSafeGround) break;
+            }
+            
+            // 安全な位置に配置（画面上部から落下）
+            player.x = foundSafeGround ? safeGroundX : safeX;
+            player.y = -50; // 画面上部の外側から開始
+            player.velX = 0;
+            player.velY = 0; // 初速度を0にして、重力で自然に落下させる
+            
+            // カメラ位置は少し戻す
             gameState.camera.x = Math.max(0, gameState.camera.x - 100);
         }
         
@@ -1005,12 +1089,42 @@
             }
         }
         
+        function handleStartScreenClick(event) {
+            // ボタンクリックの場合は、ボタンのonclickで処理されるのでここでは何もしない
+            if (event.target.id === 'startButton') return;
+            
+            // それ以外の場所をクリックした場合はゲーム開始
+            startGame();
+        }
+        
+        function requestFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+        
         function startGame() {
             console.log('ゲーム開始！');
+            
+            // モバイルデバイスの場合、フルスクリーンをリクエスト
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                requestFullscreen();
+            }
+            
             gameState.gameStarted = true;
             gameState.gamePaused = false;
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('pauseScreen').classList.add('hidden');
+            
+            // アドレスバーを隠すためにスクロール
+            window.scrollTo(0, 1);
         }
         
         function resetGame() {
@@ -1176,6 +1290,8 @@
             
             gameState.time++;
         }
+        
+        let gameLoopRunning = false; // ゲームループの状態を追跡
         
         function gameLoop() {
             if (gameState.gameStarted && !gameState.gamePaused) {
@@ -1344,68 +1460,189 @@
             const rect = container.getBoundingClientRect();
             canvas.style.width = rect.width + 'px';
             canvas.style.height = rect.height + 'px';
+            
+            // アドレスバーを隠すための処理
+            if (window.innerHeight < window.screen.height) {
+                window.scrollTo(0, 1);
+            }
         }
         
         // 初期化
         function initialize() {
             console.log('ゲーム初期化開始...');
             
-            // タイトル画像をランダムに選択（全29枚）
-            const titleImages = [
-                'https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg',
-                'https://pbs.twimg.com/media/GjvkMpDbgAApxmV?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GciMiL2aIAAXf8F?format=jpg&name=large',
-                'https://pbs.twimg.com/media/Ga3_BR3a4AAgc_m?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GX6886xaUAAC__z?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GXCixTOaIAAPKQn?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GW4jaRia8AgIaKo?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GVqdm_QWAAEB1_M?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GTXMJxvbUAA9pJV?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GS5jdSCb0AIb1yg?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GOMVeyGbEAAlHvU?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GNoRs-wbAAACsqf?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GNjCkrfbsAAiLcV?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GNTT9GzaMAAhEz_?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GMV3GZmaEAABA93?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GLvDPBCaIAAJLhr?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GLiBKmabIAA2GTd?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GKsH8HwaEAA0jgj?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GKC_I85asAAu3J4?format=jpg&name=small',
-                'https://pbs.twimg.com/media/GDkmuTwaoAAvpvo?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GCr1j_wbMAAE043?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GCeLMl6bgAA8Uny?format=jpg&name=large',
-                'https://pbs.twimg.com/media/GBUVkxhbUAAb_tP?format=jpg&name=large',
-                'https://pbs.twimg.com/media/F_eZbKpbEAA7T7z?format=jpg&name=large',
-                'https://pbs.twimg.com/media/F9vkq_yaEAA6TrA?format=jpg&name=large',
-                'https://pbs.twimg.com/media/F8FVHdwbYAAL-a1?format=jpg&name=large',
-                'https://pbs.twimg.com/media/F8FVHdxaAAA78Zg?format=jpg&name=medium',
-                'https://pbs.twimg.com/media/F2nRkPCbcAAWcEg?format=jpg&name=large',
-                'https://pbs.twimg.com/media/Gq0121oXEAAaCfx?format=jpg&name=large'
-            ];
+            // 必要な関数の存在確認
+            console.log('関数の存在確認:');
+            console.log('- initTerrain:', typeof initTerrain);
+            console.log('- resizeCanvas:', typeof resizeCanvas);
+            console.log('- gameLoop:', typeof gameLoop);
+            console.log('- render:', typeof render);
+            console.log('- updatePlayer:', typeof updatePlayer);
             
-            // ランダムに画像を選択（0から28までの整数を生成）
-            const randomIndex = Math.floor(Math.random() * titleImages.length);
-            const selectedImage = titleImages[randomIndex];
-            
-            // タイトル画像を設定
-            const titleImageElement = document.getElementById('titleImage');
-            titleImageElement.src = selectedImage;
-            
-            // 選択された画像の番号をログに記録（デバッグ用）
-            console.log(`タイトル画像を選択: 画像${randomIndex + 1}/${titleImages.length}`);
-            
-            initTerrain();
-            resizeCanvas();
-            requestAnimationFrame(gameLoop);
-            console.log('🐣 ぴよ氏の冒険 - 初期化完了！');
+            try {
+                // タイトル画像をランダムに選択（全29枚）
+                const titleImages = [
+                    'https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg',
+                    'https://pbs.twimg.com/media/GjvkMpDbgAApxmV?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GciMiL2aIAAXf8F?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/Ga3_BR3a4AAgc_m?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GX6886xaUAAC__z?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GXCixTOaIAAPKQn?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GW4jaRia8AgIaKo?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GVqdm_QWAAEB1_M?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GTXMJxvbUAA9pJV?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GS5jdSCb0AIb1yg?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GOMVeyGbEAAlHvU?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GNoRs-wbAAACsqf?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GNjCkrfbsAAiLcV?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GNTT9GzaMAAhEz_?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GMV3GZmaEAABA93?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GLvDPBCaIAAJLhr?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GLiBKmabIAA2GTd?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GKsH8HwaEAA0jgj?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GKC_I85asAAu3J4?format=jpg&name=small',
+                    'https://pbs.twimg.com/media/GDkmuTwaoAAvpvo?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GCr1j_wbMAAE043?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GCeLMl6bgAA8Uny?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GBUVkxhbUAAb_tP?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/F_eZbKpbEAA7T7z?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/F9vkq_yaEAA6TrA?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/F8FVHdwbYAAL-a1?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/F8FVHdxaAAA78Zg?format=jpg&name=medium',
+                    'https://pbs.twimg.com/media/F2nRkPCbcAAWcEg?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/Gq0121oXEAAaCfx?format=jpg&name=large'
+                ];
+                
+                // ランダムに画像を選択（0から28までの整数を生成）
+                const randomIndex = Math.floor(Math.random() * titleImages.length);
+                const selectedImage = titleImages[randomIndex];
+                
+                console.log('選択された画像URL:', selectedImage);
+                
+                // タイトル画像を設定
+                const titleImageElement = document.getElementById('titleImage');
+                if (titleImageElement) {
+                    // 画像の読み込みエラーハンドリング
+                    titleImageElement.onerror = function() {
+                        console.error('画像の読み込みに失敗しました:', selectedImage);
+                        // フォールバック画像を設定
+                        titleImageElement.src = 'https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg';
+                    };
+                    
+                    titleImageElement.onload = function() {
+                        console.log('画像の読み込みに成功しました');
+                    };
+                    
+                    titleImageElement.src = selectedImage;
+                    titleImageElement.style.display = 'block'; // 画像を確実に表示
+                    console.log(`タイトル画像を選択: 画像${randomIndex + 1}/${titleImages.length}`);
+                } else {
+                    console.error('タイトル画像要素が見つかりません');
+                }
+                
+                if (typeof initTerrain === 'function') {
+                    initTerrain();
+                } else {
+                    console.error('initTerrain関数が定義されていません');
+                }
+                
+                if (typeof resizeCanvas === 'function') {
+                    resizeCanvas();
+                } else {
+                    console.error('resizeCanvas関数が定義されていません');
+                }
+                
+                if (typeof gameLoop === 'function') {
+                    requestAnimationFrame(gameLoop);
+                } else {
+                    console.error('gameLoop関数が定義されていません');
+                }
+                
+                console.log('🐣 ぴよ氏の冒険 - 初期化完了！');
+            } catch (error) {
+                console.error('初期化エラー:', error);
+                console.error('エラー詳細:', error.stack);
+            }
         }
         
-        // ゲーム開始
-        window.addEventListener('load', initialize);
-        window.addEventListener('resize', resizeCanvas);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(resizeCanvas, 100);
+        // 画面の向きを検出して処理
+        function checkOrientation() {
+            if (window.orientation !== undefined) {
+                // 縦向きの場合は警告を表示（CSSで対応済み）
+                if (window.orientation === 0 || window.orientation === 180) {
+                    console.log('縦向きが検出されました。横向きにしてください。');
+                }
+            }
+        }
+        
+        // ゲーム開始 - シンプルな初期化
+        console.log('スクリプト読み込み完了');
+        
+        // DOMContentLoadedイベントで初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM読み込み完了 - 初期化開始');
+            
+            // Canvas要素の確認
+            const canvasCheck = document.getElementById('gameCanvas');
+            const titleImageCheck = document.getElementById('titleImage');
+            
+            console.log('Canvas要素:', canvasCheck ? '存在する' : '存在しない');
+            console.log('タイトル画像要素:', titleImageCheck ? '存在する' : '存在しない');
+            
+            if (titleImageCheck) {
+                console.log('タイトル画像の現在のsrc:', titleImageCheck.src);
+                console.log('タイトル画像の表示状態:', window.getComputedStyle(titleImageCheck).display);
+                console.log('タイトル画像のサイズ:', titleImageCheck.width, 'x', titleImageCheck.height);
+            }
+            
+            // 少し遅延させてから初期化（DOM要素の確実な読み込みのため）
+            setTimeout(function() {
+                try {
+                    console.log('初期化関数を呼び出します...');
+                    initialize();
+                    checkOrientation();
+                    
+                    // アドレスバーを隠す
+                    setTimeout(function() {
+                        window.scrollTo(0, 1);
+                    }, 100);
+                    
+                    // 画像設定後の再確認
+                    setTimeout(function() {
+                        const img = document.getElementById('titleImage');
+                        if (img) {
+                            console.log('初期化後の画像src:', img.src);
+                            console.log('初期化後の画像サイズ:', img.width, 'x', img.height);
+                            console.log('初期化後の画像naturalサイズ:', img.naturalWidth, 'x', img.naturalHeight);
+                        }
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('初期化中にエラーが発生しました:', error);
+                    console.error('エラースタック:', error.stack);
+                    alert('ゲームの初期化に失敗しました。コンソールを確認してください。\nエラー: ' + error.message);
+                }
+            }, 100);
         });
+        
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            checkOrientation();
+        });
+        
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                resizeCanvas();
+                checkOrientation();
+            }, 100);
+        });
+        
+        // スクロールを防ぐ
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+            }
+        }, { passive: false });
     </script>
 </body>
 </html>
