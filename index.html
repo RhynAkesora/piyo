@@ -35,21 +35,11 @@
             position: relative;
             width: 100vw;
             height: 100vh;
-            max-width: 1000px;
-            max-height: 550px;
+            max-width: 100vw;
+            max-height: 100vh;
             background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 40%, #FFB6C1 70%, #FFC0CB 100%);
             border-radius: 0;
             overflow: hidden;
-        }
-        
-        @media (min-width: 1020px) {
-            #gameContainer {
-                border: 6px solid #ff1493;
-                border-radius: 15px;
-                box-shadow: 0 12px 40px rgba(255,20,147,0.4);
-                width: 1000px;
-                height: 550px;
-            }
         }
         
         canvas {
@@ -74,11 +64,9 @@
             line-height: 1.2;
         }
         
-        @media (min-width: 1020px) {
+        @media (min-width: 600px) {
             #ui {
-                font-size: 22px;
-                top: 15px;
-                left: 15px;
+                font-size: 18px;
             }
         }
         
@@ -97,12 +85,9 @@
             font-weight: bold;
         }
         
-        @media (min-width: 1020px) {
+        @media (min-width: 600px) {
             #pauseButton {
-                font-size: 24px;
-                top: 15px;
-                right: 15px;
-                padding: 12px;
+                font-size: 20px;
             }
         }
         
@@ -112,27 +97,28 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 20;
+            padding: 20px;
         }
         
         #startScreen.hidden, #pauseScreen.hidden {
             display: none;
         }
         
-        #titleCanvas {
+        #titleImage {
             border: 4px solid #8B4513;
             border-radius: 12px;
             margin-bottom: 20px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            width: 60vw;
-            height: 60vw;
+            width: 80vw;
             max-width: 350px;
-            max-height: 350px;
+            height: auto;
+            object-fit: contain;
         }
         
         .game-button {
@@ -152,10 +138,9 @@
             max-width: 300px;
         }
         
-        @media (min-width: 1020px) {
+        @media (min-width: 600px) {
             .game-button {
-                font-size: 20px;
-                padding: 18px 35px;
+                font-size: 18px;
                 min-width: auto;
             }
         }
@@ -176,10 +161,9 @@
             padding: 0 10px;
         }
         
-        @media (min-width: 1020px) {
+        @media (min-width: 600px) {
             .instruction-text {
-                font-size: 16px;
-                margin: 8px 0;
+                font-size: 14px;
             }
         }
         
@@ -192,10 +176,9 @@
             text-align: center;
         }
         
-        @media (min-width: 1020px) {
+        @media (min-width: 600px) {
             .game-title {
-                font-size: 28px;
-                margin-bottom: 20px;
+                font-size: 24px;
             }
         }
         
@@ -217,9 +200,9 @@
             z-index: 5;
         }
         
-        @media (min-width: 1020px) {
+        @media (min-width: 600px) {
             .touch-area {
-                font-size: 18px;
+                font-size: 16px;
             }
         }
         
@@ -237,12 +220,6 @@
             right: 0;
             width: 60%;
         }
-        
-        @media (max-width: 1019px) {
-            .touch-area {
-                opacity: 0.6;
-            }
-        }
     </style>
 </head>
 <body>
@@ -251,7 +228,7 @@
         
         <div id="startScreen">
             <div class="game-title">🐣 ぴよ氏の冒険</div>
-            <canvas id="titleCanvas" width="350" height="350"></canvas>
+            <img id="titleImage" src="" alt="ぴよ氏の冒険">
             <div class="instruction-text">どこまで遠くへ行けるかな？</div>
             <div class="instruction-text">👈 左エリア: 移動 / 👆 右エリア: ジャンプ</div>
             <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
@@ -282,11 +259,8 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const titleCanvas = document.getElementById('titleCanvas');
-        const titleCtx = titleCanvas.getContext('2d');
         
         ctx.imageSmoothingEnabled = false;
-        titleCtx.imageSmoothingEnabled = false;
         
         const GAME_WIDTH = 1000;
         const GAME_HEIGHT = 550;
@@ -294,6 +268,7 @@
         const JUMP_FORCE = -16;
         const MOVE_SPEED = 6;
         const AUTO_SCROLL_SPEED = 2.5;
+        const INVINCIBLE_TIME = 180; // 3秒間の無敵時間（60fps × 3秒）
         
         let gameState = {
             score: 0,
@@ -313,7 +288,9 @@
             lastTerrainX: 0,
             powerUpActive: false,
             powerUpTimer: 0,
-            powerUpType: null
+            powerUpType: null,
+            invincibleTimer: 0,  // 無敵時間のタイマー
+            isInvincible: false  // 無敵状態フラグ
         };
         
         let player = {
@@ -334,61 +311,6 @@
         let terrain = [];
         let flyingEnemies = [];
         let powerUps = [];
-        
-        // タイトル画面の描画
-        function drawTitleScreen() {
-            console.log('タイトル画面を描画中...');
-            
-            // キャンバスサイズ取得
-            const canvasWidth = titleCanvas.width;
-            const canvasHeight = titleCanvas.height;
-            
-            // 背景グラデーション
-            const bgGradient = titleCtx.createRadialGradient(canvasWidth/2, canvasHeight/2, 50, canvasWidth/2, canvasHeight/2, 200);
-            bgGradient.addColorStop(0, '#f0dcc9');
-            bgGradient.addColorStop(0.7, '#d4b896');
-            bgGradient.addColorStop(1, '#c4a47c');
-            titleCtx.fillStyle = bgGradient;
-            titleCtx.fillRect(0, 0, canvasWidth, canvasHeight);
-            
-            // 枠の描画
-            titleCtx.fillStyle = '#8B4513';
-            titleCtx.fillRect(25, 60, canvasWidth - 50, canvasHeight - 120);
-            titleCtx.fillStyle = '#D2B48C';
-            titleCtx.fillRect(30, 65, canvasWidth - 60, canvasHeight - 130);
-            
-            // タイトル背景
-            titleCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-            titleCtx.fillRect(30, 20, canvasWidth - 60, 50);
-            
-            // タイトルテキスト
-            titleCtx.fillStyle = '#FFD700';
-            titleCtx.font = 'bold 24px serif';
-            titleCtx.textAlign = 'center';
-            titleCtx.strokeStyle = '#8B4513';
-            titleCtx.lineWidth = 2;
-            titleCtx.strokeText('ぴよ氏の冒険', canvasWidth/2, 50);
-            titleCtx.fillText('ぴよ氏の冒険', canvasWidth/2, 50);
-            
-            // サブタイトル
-            titleCtx.fillStyle = '#2F4F4F';
-            titleCtx.font = 'bold 16px monospace';
-            titleCtx.fillText('エンドレスランナー', canvasWidth/2, canvasHeight/2);
-            titleCtx.fillText('どこまで行けるかな？', canvasWidth/2, canvasHeight/2 + 25);
-            
-            // 簡単なキャラクター描画
-            titleCtx.fillStyle = '#ffdbac';
-            titleCtx.fillRect(canvasWidth/2 - 15, canvasHeight/2 + 50, 30, 40);
-            
-            titleCtx.fillStyle = '#ff69b4';
-            titleCtx.fillRect(canvasWidth/2 - 10, canvasHeight/2 + 40, 20, 15);
-            
-            titleCtx.fillStyle = '#000000';
-            titleCtx.fillRect(canvasWidth/2 - 8, canvasHeight/2 + 45, 4, 4);
-            titleCtx.fillRect(canvasWidth/2 + 4, canvasHeight/2 + 45, 4, 4);
-            
-            console.log('タイトル画面描画完了');
-        }
         
         function initTerrain() {
             terrain = [];
@@ -592,6 +514,14 @@
         function drawPlayer(x, y) {
             ctx.save();
             
+            // 無敵状態の点滅エフェクト
+            if (gameState.isInvincible) {
+                const blinkSpeed = Math.floor(gameState.invincibleTimer / 6) % 2;
+                if (blinkSpeed === 0) {
+                    ctx.globalAlpha = 0.3;
+                }
+            }
+            
             if (gameState.powerUpType === 'shield') {
                 ctx.strokeStyle = '#4169e1';
                 ctx.lineWidth = 3;
@@ -771,12 +701,13 @@
         function drawFlyingEnemy(enemy) {
             enemy.y += Math.sin(gameState.time * 0.05 + enemy.waveOffset) * 0.8;
             
-            const bodyColor = '#ff69b4';
-            const accentColor = '#ff1493';
+            const bodyColor = '#ffffff';
+            const accentColor = '#ffcccc';
+            const combColor = '#ff0000';
             const bounce = Math.sin(enemy.animFrame / 2) * 0.5;
             const currentY = enemy.y + bounce;
             
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = '#f5f5f5';
             const wingFlap = Math.sin(enemy.animFrame / 3) * 8;
             ctx.fillRect(enemy.x - 8, currentY + 8 + wingFlap, 12, 6);
             ctx.fillRect(enemy.x + enemy.width - 4, currentY + 8 - wingFlap, 12, 6);
@@ -788,6 +719,10 @@
             
             ctx.fillStyle = accentColor;
             ctx.fillRect(enemy.x + 8, currentY + 10, enemy.width - 16, enemy.height - 20);
+            
+            ctx.fillStyle = combColor;
+            ctx.fillRect(enemy.x + enemy.width/2 - 4, currentY + 2, 8, 6);
+            ctx.fillRect(enemy.x + enemy.width/2 - 2, currentY, 4, 4);
             
             ctx.fillStyle = '#000000';
             ctx.fillRect(enemy.x + 12, currentY + 8, 4, 4);
@@ -853,6 +788,14 @@
         }
         
         function updatePlayer() {
+            // 無敵時間の更新
+            if (gameState.isInvincible) {
+                gameState.invincibleTimer--;
+                if (gameState.invincibleTimer <= 0) {
+                    gameState.isInvincible = false;
+                }
+            }
+            
             if (gameState.powerUpActive) {
                 gameState.powerUpTimer--;
                 if (gameState.powerUpTimer <= 0) {
@@ -906,12 +849,32 @@
             
             player.onGround = false;
             
+            // 地形との当たり判定（横からの衝突も検知）
             for (let t of terrain) {
                 if (t.type !== 'hole' && checkCollision(player, t)) {
-                    if (player.velY > 0 && player.y < t.y) {
+                    const playerBottom = player.y + player.height;
+                    const playerRight = player.x + player.width;
+                    const terrainTop = t.y;
+                    const terrainRight = t.x + t.width;
+                    
+                    // 上から着地
+                    if (player.velY > 0 && playerBottom - player.velY <= terrainTop) {
                         player.y = t.y - player.height;
                         player.velY = 0;
                         player.onGround = true;
+                    }
+                    // 横からの衝突
+                    else if (player.velX > 0 && playerRight - player.velX <= t.x) {
+                        player.x = t.x - player.width;
+                        player.velX = 0;
+                    } else if (player.velX < 0 && player.x - player.velX >= terrainRight) {
+                        player.x = terrainRight;
+                        player.velX = 0;
+                    }
+                    // 下からの衝突
+                    else if (player.velY < 0 && player.y - player.velY >= t.y + t.height) {
+                        player.y = t.y + t.height;
+                        player.velY = 0;
                     }
                 }
             }
@@ -937,10 +900,12 @@
         }
         
         function updateEnemies() {
+            // 地上敵の更新
             for (let enemy of enemies) {
                 enemy.x += enemy.velX - gameState.gameSpeed;
                 
-                if (gameState.powerUpType === 'shield') continue;
+                // パワーアップの盾または無敵状態の場合はダメージを受けない
+                if (gameState.powerUpType === 'shield' || gameState.isInvincible) continue;
                 
                 if (checkCollision(player, enemy)) {
                     if (player.velY > 0 && player.y < enemy.y) {
@@ -948,30 +913,39 @@
                         player.velY = JUMP_FORCE / 2;
                         gameState.score += 200;
                     } else {
-                        gameState.lives--;
-                        resetPlayerPosition();
-                        
-                        if (gameState.lives <= 0) {
-                            gameOver();
-                        }
+                        takeDamage();
                     }
                 }
             }
             
+            // 空中敵の更新
             for (let enemy of flyingEnemies) {
                 enemy.x += enemy.velX - gameState.gameSpeed;
                 
-                if (gameState.powerUpType === 'shield') continue;
+                // パワーアップの盾または無敵状態の場合はダメージを受けない
+                if (gameState.powerUpType === 'shield' || gameState.isInvincible) continue;
                 
                 if (checkCollision(player, enemy)) {
-                    gameState.lives--;
-                    enemy.x = -1000;
-                    resetPlayerPosition();
-                    
-                    if (gameState.lives <= 0) {
-                        gameOver();
+                    if (player.velY > 0 && player.y < enemy.y + enemy.height/2) {
+                        enemy.x = -1000;
+                        player.velY = JUMP_FORCE / 2;
+                        gameState.score += 300;
+                    } else {
+                        enemy.x = -1000;
+                        takeDamage();
                     }
                 }
+            }
+        }
+        
+        function takeDamage() {
+            gameState.lives--;
+            gameState.isInvincible = true;
+            gameState.invincibleTimer = INVINCIBLE_TIME;
+            resetPlayerPosition();
+            
+            if (gameState.lives <= 0) {
+                gameOver();
             }
         }
         
@@ -1056,6 +1030,8 @@
             gameState.powerUpActive = false;
             gameState.powerUpTimer = 0;
             gameState.powerUpType = null;
+            gameState.isInvincible = false;
+            gameState.invincibleTimer = 0;
             
             player.x = 150;
             player.y = 350;
@@ -1174,6 +1150,18 @@
                 
                 ctx.fillText(powerUpName, GAME_WIDTH - 190, 100);
                 ctx.fillText(`残り時間: ${remainingTime}秒`, GAME_WIDTH - 190, 120);
+            }
+            
+            // 無敵時間の表示
+            if (gameState.isInvincible) {
+                const remainingTime = Math.ceil(gameState.invincibleTimer / 60);
+                ctx.fillStyle = 'rgba(255, 215, 0, 0.7)';
+                ctx.fillRect(GAME_WIDTH / 2 - 100, 20, 200, 40);
+                
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 18px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('⭐ 無敵時間: ' + remainingTime + '秒', GAME_WIDTH / 2, 45);
             }
             
             if (gameState.gamePaused) {
@@ -1361,7 +1349,51 @@
         // 初期化
         function initialize() {
             console.log('ゲーム初期化開始...');
-            drawTitleScreen();
+            
+            // タイトル画像をランダムに選択（全29枚）
+            const titleImages = [
+                'https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg',
+                'https://pbs.twimg.com/media/GjvkMpDbgAApxmV?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GciMiL2aIAAXf8F?format=jpg&name=large',
+                'https://pbs.twimg.com/media/Ga3_BR3a4AAgc_m?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GX6886xaUAAC__z?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GXCixTOaIAAPKQn?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GW4jaRia8AgIaKo?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GVqdm_QWAAEB1_M?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GTXMJxvbUAA9pJV?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GS5jdSCb0AIb1yg?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GOMVeyGbEAAlHvU?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GNoRs-wbAAACsqf?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GNjCkrfbsAAiLcV?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GNTT9GzaMAAhEz_?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GMV3GZmaEAABA93?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GLvDPBCaIAAJLhr?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GLiBKmabIAA2GTd?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GKsH8HwaEAA0jgj?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GKC_I85asAAu3J4?format=jpg&name=small',
+                'https://pbs.twimg.com/media/GDkmuTwaoAAvpvo?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GCr1j_wbMAAE043?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GCeLMl6bgAA8Uny?format=jpg&name=large',
+                'https://pbs.twimg.com/media/GBUVkxhbUAAb_tP?format=jpg&name=large',
+                'https://pbs.twimg.com/media/F_eZbKpbEAA7T7z?format=jpg&name=large',
+                'https://pbs.twimg.com/media/F9vkq_yaEAA6TrA?format=jpg&name=large',
+                'https://pbs.twimg.com/media/F8FVHdwbYAAL-a1?format=jpg&name=large',
+                'https://pbs.twimg.com/media/F8FVHdxaAAA78Zg?format=jpg&name=medium',
+                'https://pbs.twimg.com/media/F2nRkPCbcAAWcEg?format=jpg&name=large',
+                'https://pbs.twimg.com/media/Gq0121oXEAAaCfx?format=jpg&name=large'
+            ];
+            
+            // ランダムに画像を選択（0から28までの整数を生成）
+            const randomIndex = Math.floor(Math.random() * titleImages.length);
+            const selectedImage = titleImages[randomIndex];
+            
+            // タイトル画像を設定
+            const titleImageElement = document.getElementById('titleImage');
+            titleImageElement.src = selectedImage;
+            
+            // 選択された画像の番号をログに記録（デバッグ用）
+            console.log(`タイトル画像を選択: 画像${randomIndex + 1}/${titleImages.length}`);
+            
             initTerrain();
             resizeCanvas();
             requestAnimationFrame(gameLoop);
