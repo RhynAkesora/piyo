@@ -8,6 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#ff69b4">
+    <link rel="manifest" href="manifest.json">
     <title>ぴよ氏の冒険</title>
     <style>
         * {
@@ -35,19 +37,24 @@
                 position: fixed;
                 top: 0;
                 left: 0;
-                width: 100vh;
-                height: 100vw;
+                width: 100%;
+                height: 100%;
                 background: linear-gradient(135deg, #ffb6c1, #ffc0cb, #ff69b4);
                 color: white;
-                font-size: 24px;
+                font-size: 6vw;
                 font-weight: bold;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 z-index: 9999;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-                transform: rotate(90deg);
-                transform-origin: left bottom;
+                text-align: center;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            
+            #gameContainer {
+                display: none;
             }
         }
         
@@ -61,14 +68,30 @@
         }
         
         #gameContainer {
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100vw;
             height: 100vh;
-            max-width: 100vw;
-            max-height: 100vh;
             background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 40%, #FFB6C1 70%, #FFC0CB 100%);
-            border-radius: 0;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        @media screen and (orientation: portrait) {
+            #gameContainer {
+                transform: rotate(90deg);
+                transform-origin: center center;
+                width: 100vh;
+                height: 100vw;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                margin-top: -50vw;
+                margin-left: -50vh;
+            }
         }
         
         canvas {
@@ -79,6 +102,16 @@
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
             object-fit: contain;
+        }
+        
+        @media screen and (max-aspect-ratio: 1/1) {
+            /* 縦長画面の場合 */
+            canvas {
+                width: auto;
+                height: 100vw;
+                max-height: 100vh;
+                transform: rotate(90deg);
+            }
         }
         
         #ui {
@@ -1458,8 +1491,31 @@
         function resizeCanvas() {
             const container = document.getElementById('gameContainer');
             const rect = container.getBoundingClientRect();
-            canvas.style.width = rect.width + 'px';
-            canvas.style.height = rect.height + 'px';
+            
+            // 横画面の場合のみゲームを表示
+            if (window.innerWidth > window.innerHeight) {
+                // キャンバスのアスペクト比を保持しながら画面に収める
+                const gameAspectRatio = GAME_WIDTH / GAME_HEIGHT;
+                const screenAspectRatio = window.innerWidth / window.innerHeight;
+                
+                let scale = 1;
+                if (screenAspectRatio > gameAspectRatio) {
+                    // 画面が横長すぎる場合は高さに合わせる
+                    scale = window.innerHeight / GAME_HEIGHT;
+                } else {
+                    // 画面が縦長気味の場合は幅に合わせる
+                    scale = window.innerWidth / GAME_WIDTH;
+                }
+                
+                const scaledWidth = GAME_WIDTH * scale;
+                const scaledHeight = GAME_HEIGHT * scale;
+                
+                canvas.style.width = scaledWidth + 'px';
+                canvas.style.height = scaledHeight + 'px';
+                canvas.style.position = 'absolute';
+                canvas.style.left = ((window.innerWidth - scaledWidth) / 2) + 'px';
+                canvas.style.top = ((window.innerHeight - scaledHeight) / 2) + 'px';
+            }
             
             // アドレスバーを隠すための処理
             if (window.innerHeight < window.screen.height) {
@@ -1573,7 +1629,66 @@
                     console.log('縦向きが検出されました。横向きにしてください。');
                 }
             }
+            
+            // 画面の向きをロックする試み（対応ブラウザのみ）
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(function(error) {
+                    console.log('画面の向きのロックに失敗:', error);
+                });
+            }
         }
+        
+        // PWA用Service Worker登録
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                // インラインService Worker
+                const swCode = `
+                    self.addEventListener('install', function(event) {
+                        self.skipWaiting();
+                    });
+                    
+                    self.addEventListener('activate', function(event) {
+                        event.waitUntil(clients.claim());
+                    });
+                    
+                    self.addEventListener('fetch', function(event) {
+                        // オフライン対応などを実装可能
+                    });
+                `;
+                
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                
+                navigator.serviceWorker.register(swUrl).then(function(registration) {
+                    console.log('Service Worker登録成功:', registration);
+                }).catch(function(error) {
+                    console.log('Service Worker登録失敗:', error);
+                });
+            }
+        }
+        
+        // PWAインストールプロンプト
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('PWAインストール可能');
+            
+            // インストールボタンを表示する場合はここで処理
+            setTimeout(() => {
+                if (deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) {
+                    if (confirm('ぴよ氏の冒険をホーム画面に追加しますか？\nアプリとして快適にプレイできます！')) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then((choiceResult) => {
+                            if (choiceResult.outcome === 'accepted') {
+                                console.log('PWAインストール受諾');
+                            }
+                            deferredPrompt = null;
+                        });
+                    }
+                }
+            }, 5000); // 5秒後に表示
+        });
         
         // ゲーム開始 - シンプルな初期化
         console.log('スクリプト読み込み完了');
@@ -1581,6 +1696,9 @@
         // DOMContentLoadedイベントで初期化
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM読み込み完了 - 初期化開始');
+            
+            // PWA Service Worker登録
+            registerServiceWorker();
             
             // Canvas要素の確認
             const canvasCheck = document.getElementById('gameCanvas');
@@ -1601,6 +1719,12 @@
                     console.log('初期化関数を呼び出します...');
                     initialize();
                     checkOrientation();
+                    
+                    // 画面の向きを監視
+                    window.addEventListener('orientationchange', function() {
+                        checkOrientation();
+                        resizeCanvas();
+                    });
                     
                     // アドレスバーを隠す
                     setTimeout(function() {
