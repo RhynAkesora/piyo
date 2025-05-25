@@ -78,19 +78,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            box-sizing: border-box;
         }
         
         @media screen and (orientation: portrait) {
             #gameContainer {
-                transform: rotate(90deg);
-                transform-origin: center center;
-                width: 100vh;
-                height: 100vw;
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                margin-top: -50vw;
-                margin-left: -50vh;
+                display: none;
             }
         }
         
@@ -116,10 +110,10 @@
         
         #ui {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 15px;
+            left: 15px;
             color: white;
-            font-size: 4vw;
+            font-size: 3.5vw;
             text-shadow: 2px 2px 4px rgba(255,20,147,0.8);
             font-weight: bold;
             z-index: 10;
@@ -128,19 +122,19 @@
         
         @media (min-width: 600px) {
             #ui {
-                font-size: 18px;
+                font-size: 16px;
             }
         }
         
         #pauseButton {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 15px;
+            right: 15px;
             background: rgba(0, 0, 0, 0.7);
             color: white;
             border: none;
-            padding: 10px;
-            font-size: 5vw;
+            padding: 8px;
+            font-size: 4vw;
             border-radius: 8px;
             cursor: pointer;
             z-index: 15;
@@ -149,7 +143,8 @@
         
         @media (min-width: 600px) {
             #pauseButton {
-                font-size: 20px;
+                font-size: 18px;
+                padding: 10px;
             }
         }
         
@@ -165,8 +160,11 @@
             justify-content: center;
             align-items: center;
             z-index: 20;
-            padding: 20px;
+            padding: 40px 20px;
+            box-sizing: border-box;
             cursor: pointer;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         
         #startScreen.hidden, #pauseScreen.hidden {
@@ -190,22 +188,23 @@
             background: linear-gradient(135deg, #ff69b4, #ff1493);
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 5vw;
+            padding: 12px 25px;
+            font-size: 4vw;
             font-weight: bold;
             border-radius: 12px;
             cursor: pointer;
             box-shadow: 0 6px 15px rgba(255,20,147,0.4);
             font-family: 'Courier New', monospace;
-            margin: 8px;
+            margin: 5px;
             transition: all 0.3s ease;
-            min-width: 60vw;
-            max-width: 300px;
+            min-width: 50vw;
+            max-width: 280px;
         }
         
         @media (min-width: 600px) {
             .game-button {
-                font-size: 18px;
+                font-size: 16px;
+                padding: 15px 30px;
                 min-width: auto;
             }
         }
@@ -1490,22 +1489,29 @@
         // ビューポート対応
         function resizeCanvas() {
             const container = document.getElementById('gameContainer');
-            const rect = container.getBoundingClientRect();
             
             // 横画面の場合のみゲームを表示
             if (window.innerWidth > window.innerHeight) {
+                // セーフエリアを考慮したパディング
+                const padding = 20; // 上下左右のパディング
+                const availableWidth = window.innerWidth - (padding * 2);
+                const availableHeight = window.innerHeight - (padding * 2);
+                
                 // キャンバスのアスペクト比を保持しながら画面に収める
                 const gameAspectRatio = GAME_WIDTH / GAME_HEIGHT;
-                const screenAspectRatio = window.innerWidth / window.innerHeight;
+                const screenAspectRatio = availableWidth / availableHeight;
                 
                 let scale = 1;
                 if (screenAspectRatio > gameAspectRatio) {
                     // 画面が横長すぎる場合は高さに合わせる
-                    scale = window.innerHeight / GAME_HEIGHT;
+                    scale = availableHeight / GAME_HEIGHT;
                 } else {
                     // 画面が縦長気味の場合は幅に合わせる
-                    scale = window.innerWidth / GAME_WIDTH;
+                    scale = availableWidth / GAME_WIDTH;
                 }
+                
+                // スケールを少し小さくして余裕を持たせる
+                scale *= 0.9; // 90%のサイズにする
                 
                 const scaledWidth = GAME_WIDTH * scale;
                 const scaledHeight = GAME_HEIGHT * scale;
@@ -1515,6 +1521,11 @@
                 canvas.style.position = 'absolute';
                 canvas.style.left = ((window.innerWidth - scaledWidth) / 2) + 'px';
                 canvas.style.top = ((window.innerHeight - scaledHeight) / 2) + 'px';
+                
+                // コンテナも調整
+                const gameContainer = document.getElementById('gameContainer');
+                gameContainer.style.width = window.innerWidth + 'px';
+                gameContainer.style.height = window.innerHeight + 'px';
             }
             
             // アドレスバーを隠すための処理
