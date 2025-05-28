@@ -33,7 +33,7 @@
         
         @media screen and (orientation: portrait) {
             body::before {
-                content: "🔄🌕画面を横向きにするンゴ🌑";
+                content: "🔄🌚画面を横向きにするンゴ🌝";
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -238,8 +238,6 @@
             margin-bottom: 15px;
             font-weight: bold;
             text-align: center;
-            position: relative;
-            top: 0.5em;
         }
         
         @media (min-width: 600px) {
@@ -1068,8 +1066,12 @@
             player.x += player.velX;
             player.y += player.velY;
             
-            if (player.x < gameState.camera.x + 50) {
-                player.x = gameState.camera.x + 50;
+            // 画面の左右端制限
+            if (player.x < gameState.camera.x + 25) {
+                player.x = gameState.camera.x + 25;
+            }
+            if (player.x + player.width > gameState.camera.x + GAME_WIDTH - 25) {
+                player.x = gameState.camera.x + GAME_WIDTH - 25 - player.width;
             }
             
             player.onGround = false;
@@ -1133,9 +1135,18 @@
                         continue;
                     }
                     
-                    // 通常の衝突処理
-                    if (player.velY > 0 && player.y < enemy.y) {
-                        // 上から踏んづけた場合
+                    // より厳密な踏みつけ判定
+                    const playerBottom = player.y + player.height;
+                    const enemyTop = enemy.y;
+                    const playerCenterY = player.y + player.height / 2;
+                    const enemyCenterY = enemy.y + enemy.height / 2;
+                    
+                    // 踏みつけ成功条件：
+                    // 1. プレイヤーの中心が敵の中心より上にある
+                    // 2. プレイヤーの底面が敵の上部40%以内にある
+                    if (playerCenterY < enemyCenterY && 
+                        playerBottom <= enemyTop + enemy.height * 0.4) {
+                        // 踏みつけ成功
                         enemies.splice(i, 1);
                         player.velY = JUMP_FORCE / 2;
                         gameState.score += 200;
@@ -1163,9 +1174,18 @@
                         continue;
                     }
                     
-                    // 通常の衝突処理
-                    if (player.velY > 0 && player.y < enemy.y + enemy.height/2) {
-                        // 上から踏んづけた場合
+                    // より厳密な踏みつけ判定
+                    const playerBottom = player.y + player.height;
+                    const enemyTop = enemy.y;
+                    const playerCenterY = player.y + player.height / 2;
+                    const enemyCenterY = enemy.y + enemy.height / 2;
+                    
+                    // 踏みつけ成功条件：
+                    // 1. プレイヤーの中心が敵の中心より上にある
+                    // 2. プレイヤーの底面が敵の上部50%以内にある
+                    if (playerCenterY < enemyCenterY && 
+                        playerBottom <= enemyTop + enemy.height * 0.5) {
+                        // 踏みつけ成功
                         flyingEnemies.splice(i, 1);
                         player.velY = JUMP_FORCE / 2;
                         gameState.score += 300;
@@ -1266,8 +1286,8 @@
             gameState.gameStarted = false;
             
             setTimeout(() => {
-                alert(`ゲームオーバー\n`
-                `それはちょっと世間は許してくれませんよ～\n` +
+                alert(`ゲームオーバー\n` +
+                      `それはちょっと世間は許してくれませんよ〜🐤\n` +
                       `到達距離: ${gameState.distance}m\n` +
                       `最終スコア: ${gameState.score}点\n` +
                       `到達レベル: ${gameState.speedLevel}`);
