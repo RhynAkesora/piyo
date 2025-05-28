@@ -296,7 +296,7 @@
             <div class="game-title">🐣 ぴよ氏の冒険</div>
             <img id="titleImage" src="https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg" alt="ぴよ氏の冒険">
             <div class="instruction-text">どこまで遠くへ行けるかな？</div>
-            <div class="instruction-text">👈 左エリア: 移動 / 👆 右エリア: ジャンプ</div>
+            <div class="instruction-text">👈 左エリア: 移動 / 👆 右エリア: ジャンプ・下スワイプで降下</div>
             <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
             <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
                 画面をタップまたはスペースキーで開始
@@ -304,14 +304,14 @@
         </div>
         
         <div id="pauseScreen" class="hidden">
-            <div class="game-title">⏸️ ポーズ中</div>
+            <div class="game-title"⏸️ ポーズ中</div>
             <button id="resumeButton" class="game-button" onclick="pauseGame()">▶️ 再開</button>
             <button id="restartButton" class="game-button" onclick="resetGame()">🔄 リスタート</button>
             <div class="instruction-text">画面をタップまたはスペースキーで再開</div>
         </div>
         
         <div id="leftArea" class="touch-area">🏃‍♀️ 移動</div>
-        <div id="rightArea" class="touch-area">⭐ ジャンプ</div>
+        <div id="rightArea" class="touch-area">⭐ ジャンプ<br>📱 下スワイプで降下</div>
         
         <button id="pauseButton" onclick="pauseGame()">⏸️</button>
         
@@ -350,7 +350,9 @@
             score: 0,
             lives: 3,
             camera: { x: 0, y: 0 },
-            input: { left: false, right: false, jump: false, jumpPressed: false },
+            input: { left: false, right: false, jump: false, jumpPressed: false, down: false },
+            recentlyDropped: false,
+            dropFromY: 0,
             time: 0,
             gameStarted: false,
             gamePaused: false,
@@ -1009,6 +1011,15 @@
                 }
             }
             
+            // 下降クールダウンの距離ベース更新
+            if (gameState.recentlyDropped) {
+                // 下降開始位置から60ピクセル以上落ちたら着地判定復帰
+                if (player.y > gameState.dropFromY + 60) {
+                    gameState.recentlyDropped = false;
+                    console.log('📍 十分な距離落下：着地判定復帰');
+                }
+            }
+            
             if (gameState.powerUpActive) {
                 gameState.powerUpTimer--;
                 
@@ -1107,6 +1118,20 @@
             
             for (let platform of platforms) {
                 if (checkCollision(player, platform, 'プラットフォームとの')) {
+                    // 下降判定が出た場合はすり抜け処理
+                    if (gameState.input.down) {
+                        gameState.input.down = false; // 下降判定をリセット
+                        gameState.recentlyDropped = true; // 下降クールダウン開始
+                        gameState.dropFromY = player.y; // 下降開始位置を記録
+                        console.log(`⬇️ プラットフォームをすり抜けて下降開始 (Y:${player.y.toFixed(0)})`);
+                        continue; // このプラットフォームの判定をスキップ
+                    }
+                    
+                    // 最近下降操作をした場合は着地判定をスキップ
+                    if (gameState.recentlyDropped) {
+                        continue;
+                    }
+                    
                     if (player.velY > 0 && player.y < platform.y) {
                         player.y = platform.y - player.height;
                         player.velY = 0;
@@ -1523,6 +1548,11 @@
         const leftArea = document.getElementById('leftArea');
         const rightArea = document.getElementById('rightArea');
         
+        // スワイプ検出用の変数
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        let isSwipeDetected = false;
+        
         leftArea.addEventListener('touchstart', (e) => {
             if (!gameState.gameStarted || gameState.gamePaused) return;
             e.preventDefault();
@@ -1568,13 +1598,40 @@
             if (!gameState.gameStarted || gameState.gamePaused) return;
             e.preventDefault();
             rightArea.classList.add('active');
+            
+            // スワイプ検出の準備
+            const touch = e.touches[0];
+            touchStartY = touch.clientY;
+            touchStartTime = Date.now();
+            isSwipeDetected = false;
+            
             gameState.input.jump = true;
+        });
+        
+        rightArea.addEventListener('touchmove', (e) => {
+            if (!gameState.gameStarted || gameState.gamePaused) return;
+            e.preventDefault();
+            
+            // スワイプ検出
+            const touch = e.touches[0];
+            const currentY = touch.clientY;
+            const deltaY = currentY - touchStartY;
+            const deltaTime = Date.now() - touchStartTime;
+            
+            // 下スワイプ判定（50px以上下に、500ms以内で）
+            if (deltaY > 50 && deltaTime < 500 && !isSwipeDetected) {
+                isSwipeDetected = true;
+                gameState.input.jump = false;
+                gameState.input.down = true;
+                console.log('📱 下スワイプ検出：プラットフォームから下降');
+            }
         });
         
         rightArea.addEventListener('touchend', (e) => {
             e.preventDefault();
             rightArea.classList.remove('active');
             gameState.input.jump = false;
+            // downのリセットはプラットフォーム処理で行うため、ここでは行わない
         });
         
         document.getElementById('pauseScreen').addEventListener('click', (e) => {
@@ -1621,6 +1678,11 @@
                 case 'D':
                     gameState.input.right = true;
                     break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    gameState.input.down = true;
+                    break;
                 case ' ':
                 case 'ArrowUp':
                 case 'w':
@@ -1642,6 +1704,11 @@
                 case 'd':
                 case 'D':
                     gameState.input.right = false;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    gameState.input.down = false;
                     break;
                 case ' ':
                 case 'ArrowUp':
