@@ -296,7 +296,7 @@
             <div class="game-title">🐣 ぴよ氏の冒険</div>
             <img id="titleImage" src="https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg" alt="ぴよ氏の冒険">
             <div class="instruction-text">どこまで遠くへ行けるかな？</div>
-            <div class="instruction-text">👈 左エリア: 移動 / 👆 右エリア: ジャンプ・下スワイプで降下</div>
+            <div class="instruction-text">👈 左エリア: 移動・下スワイプで降下 / 👆 右エリア: ジャンプ</div>
             <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
             <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
                 画面をタップまたはスペースキーで開始
@@ -310,8 +310,8 @@
             <div class="instruction-text">画面をタップまたはスペースキーで再開</div>
         </div>
         
-        <div id="leftArea" class="touch-area">🏃‍♀️ 移動</div>
-        <div id="rightArea" class="touch-area">⭐ ジャンプ<br>📱 下スワイプで降下</div>
+        <div id="leftArea" class="touch-area">🏃‍♀️ 移動<br>📱 下スワイプで降下</div>
+        <div id="rightArea" class="touch-area">⭐ ジャンプ</div>
         
         <button id="pauseButton" onclick="pauseGame()">⏸️</button>
         
@@ -1548,10 +1548,10 @@
         const leftArea = document.getElementById('leftArea');
         const rightArea = document.getElementById('rightArea');
         
-        // スワイプ検出用の変数
-        let touchStartY = 0;
-        let touchStartTime = 0;
-        let isSwipeDetected = false;
+        // 左エリア用のスワイプ検出変数
+        let leftTouchStartY = 0;
+        let leftTouchStartTime = 0;
+        let leftIsSwipeDetected = false;
         
         leftArea.addEventListener('touchstart', (e) => {
             if (!gameState.gameStarted || gameState.gamePaused) return;
@@ -1562,6 +1562,7 @@
             const rect = leftArea.getBoundingClientRect();
             const touchX = touch.clientX - rect.left;
             
+            // 左右移動判定
             if (touchX < rect.width / 2) {
                 gameState.input.left = true;
                 gameState.input.right = false;
@@ -1569,21 +1570,40 @@
                 gameState.input.right = true;
                 gameState.input.left = false;
             }
+            
+            // 下スワイプ検出の準備
+            leftTouchStartY = touch.clientY;
+            leftTouchStartTime = Date.now();
+            leftIsSwipeDetected = false;
         });
         
         leftArea.addEventListener('touchmove', (e) => {
             if (!gameState.gameStarted || gameState.gamePaused) return;
             e.preventDefault();
+            
             const touch = e.touches[0];
             const rect = leftArea.getBoundingClientRect();
             const touchX = touch.clientX - rect.left;
             
+            // 左右移動判定の更新
             if (touchX < rect.width / 2) {
                 gameState.input.left = true;
                 gameState.input.right = false;
             } else {
                 gameState.input.right = true;
                 gameState.input.left = false;
+            }
+            
+            // 下スワイプ検出
+            const currentY = touch.clientY;
+            const deltaY = currentY - leftTouchStartY;
+            const deltaTime = Date.now() - leftTouchStartTime;
+            
+            // 下スワイプ判定（50px以上下に、500ms以内で）
+            if (deltaY > 50 && deltaTime < 500 && !leftIsSwipeDetected) {
+                leftIsSwipeDetected = true;
+                gameState.input.down = true;
+                console.log('📱 左エリア下スワイプ検出：プラットフォームから下降');
             }
         });
         
@@ -1598,40 +1618,13 @@
             if (!gameState.gameStarted || gameState.gamePaused) return;
             e.preventDefault();
             rightArea.classList.add('active');
-            
-            // スワイプ検出の準備
-            const touch = e.touches[0];
-            touchStartY = touch.clientY;
-            touchStartTime = Date.now();
-            isSwipeDetected = false;
-            
             gameState.input.jump = true;
-        });
-        
-        rightArea.addEventListener('touchmove', (e) => {
-            if (!gameState.gameStarted || gameState.gamePaused) return;
-            e.preventDefault();
-            
-            // スワイプ検出
-            const touch = e.touches[0];
-            const currentY = touch.clientY;
-            const deltaY = currentY - touchStartY;
-            const deltaTime = Date.now() - touchStartTime;
-            
-            // 下スワイプ判定（50px以上下に、500ms以内で）
-            if (deltaY > 50 && deltaTime < 500 && !isSwipeDetected) {
-                isSwipeDetected = true;
-                gameState.input.jump = false;
-                gameState.input.down = true;
-                console.log('📱 下スワイプ検出：プラットフォームから下降');
-            }
         });
         
         rightArea.addEventListener('touchend', (e) => {
             e.preventDefault();
             rightArea.classList.remove('active');
             gameState.input.jump = false;
-            // downのリセットはプラットフォーム処理で行うため、ここでは行わない
         });
         
         document.getElementById('pauseScreen').addEventListener('click', (e) => {
