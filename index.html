@@ -1,4 +1,26 @@
-<!DOCTYPE html>
+.version-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 2.5vw;
+            text-align: center;
+            margin-left: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+            font-weight: normal;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        @media (min-width: 600px) {
+            .version-text {
+                font-size: 12px;
+            }
+        }
+        
+        .start-button-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+        }<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -297,7 +319,10 @@
             <img id="titleImage" src="https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg" alt="ぴよ氏の冒険">
             <div class="instruction-text">どこまで遠くへ行けるかな？</div>
             <div class="instruction-text">👈 左エリア: 移動・下スワイプで降下 / 👆 右エリア: ジャンプ</div>
-            <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
+            <div class="start-button-container">
+                <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
+                <span class="version-text">Ver.0.70</span>
+            </div>
             <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
                 画面をタップまたはスペースキーで開始
             </div>
@@ -1599,8 +1624,8 @@
             const deltaY = currentY - leftTouchStartY;
             const deltaTime = Date.now() - leftTouchStartTime;
             
-            // 下スワイプ判定（50px以上下に、500ms以内で）
-            if (deltaY > 50 && deltaTime < 500 && !leftIsSwipeDetected) {
+            // 下スワイプ判定（50px以上下に、200ms以内で）
+            if (deltaY > 50 && deltaTime < 200 && !leftIsSwipeDetected) {
                 leftIsSwipeDetected = true;
                 gameState.input.down = true;
                 console.log('📱 左エリア下スワイプ検出：プラットフォームから下降');
