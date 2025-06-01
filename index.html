@@ -1618,8 +1618,8 @@
             const deltaY = currentY - leftTouchStartY;
             const deltaTime = Date.now() - leftTouchStartTime;
             
-            // 下スワイプ判定（30px以上下に、300ms以内で）- より緩い条件
-            if (deltaY > 30 && deltaTime < 300 && !leftIsSwipeDetected) {
+            // 下スワイプ判定（15px以上下に、800ms以内で）- さらに緩い条件
+            if (deltaY > 15 && deltaTime < 800 && !leftIsSwipeDetected) {
                 leftIsSwipeDetected = true;
                 gameState.input.down = true;
                 // 下スワイプ検出時は左右移動を停止
