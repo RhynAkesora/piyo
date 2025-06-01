@@ -1613,25 +1613,31 @@
             const rect = leftArea.getBoundingClientRect();
             const touchX = touch.clientX - rect.left;
             
-            // 左右移動判定の更新
-            if (touchX < rect.width / 2) {
-                gameState.input.left = true;
-                gameState.input.right = false;
-            } else {
-                gameState.input.right = true;
-                gameState.input.left = false;
-            }
-            
-            // 下スワイプ検出
+            // 下スワイプ検出を先に行う
             const currentY = touch.clientY;
             const deltaY = currentY - leftTouchStartY;
             const deltaTime = Date.now() - leftTouchStartTime;
             
-            // 下スワイプ判定（50px以上下に、100ms以内で）
-            if (deltaY > 50 && deltaTime < 100 && !leftIsSwipeDetected) {
+            // 下スワイプ判定（30px以上下に、300ms以内で）- より緩い条件
+            if (deltaY > 30 && deltaTime < 300 && !leftIsSwipeDetected) {
                 leftIsSwipeDetected = true;
                 gameState.input.down = true;
+                // 下スワイプ検出時は左右移動を停止
+                gameState.input.left = false;
+                gameState.input.right = false;
                 console.log('📱 左エリア下スワイプ検出：プラットフォームから下降');
+                return; // 左右移動判定をスキップ
+            }
+            
+            // 下スワイプが検出されていない場合のみ左右移動判定
+            if (!leftIsSwipeDetected) {
+                if (touchX < rect.width / 2) {
+                    gameState.input.left = true;
+                    gameState.input.right = false;
+                } else {
+                    gameState.input.right = true;
+                    gameState.input.left = false;
+                }
             }
         });
         
