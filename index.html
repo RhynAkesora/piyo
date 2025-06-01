@@ -1,29 +1,4 @@
-.version-text {
-            color: #ffffff !important;
-            font-size: 2.5vw;
-            text-align: center;
-            margin-left: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.9), -1px -1px 1px rgba(0,0,0,0.9), 1px -1px 1px rgba(0,0,0,0.9), -1px 1px 1px rgba(0,0,0,0.9);
-            font-weight: bold;
-            display: inline-block;
-            vertical-align: middle;
-            background: rgba(0,0,0,0.3);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        
-        @media (min-width: 600px) {
-            .version-text {
-                font-size: 12px;
-            }
-        }
-        
-        .start-button-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 5px;
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -263,8 +238,8 @@
             margin-bottom: 15px;
             font-weight: bold;
             text-align: center;
-            position: relative; /* これを追加 */
-            top: 0.5em; /* これを追加 (0.5emで半文字分下に移動) */
+            position: relative;
+            top: 0.5em;
         }
         
         @media (min-width: 600px) {
@@ -311,6 +286,33 @@
             right: 0;
             width: 60%;
         }
+        
+        .version-text {
+            color: #ffffff !important;
+            font-size: 2.5vw;
+            text-align: center;
+            margin-left: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9), -1px -1px 1px rgba(0,0,0,0.9), 1px -1px 1px rgba(0,0,0,0.9), -1px 1px 1px rgba(0,0,0,0.9);
+            font-weight: bold;
+            display: inline-block;
+            vertical-align: middle;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        @media (min-width: 600px) {
+            .version-text {
+                font-size: 12px;
+            }
+        }
+        
+        .start-button-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
@@ -324,7 +326,7 @@
             <div class="instruction-text">👈 左エリア: 移動・下スワイプで降下 / 👆 右エリア: ジャンプ</div>
             <div class="start-button-container">
                 <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
-                <span class="version-text" style="color: white !important;">Ver.0.72</span>
+                <span class="version-text" style="color: white !important;">Ver.0.73</span>
             </div>
             <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
                 画面をタップまたはスペースキーで開始
@@ -400,7 +402,9 @@
             speedLevel: 1,  // 現在のスピードレベル（1から開始）
             lastSpeedUpDistance: 0,  // 最後にスピードアップした距離
             speedUpNotification: false,
-            speedUpNotificationTimer: 0
+            speedUpNotificationTimer: 0,
+            downSwipeTimer: 0,  // 下スワイプの有効時間を管理
+            downSwipeActive: false  // 下スワイプが有効かどうか
         };
         
         let player = {
@@ -727,11 +731,6 @@
                 ctx.fillRect(x - 4, y - 4, player.width + 8, player.height + 8);
             }
             
-            if (gameState.powerUpType === 'lemon_can') {
-                ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
-                ctx.fillRect(x - 4, y - 4, player.width + 8, player.height + 8);
-            }
-            
             if (player.facing === 'left') {
                 ctx.scale(-1, 1);
                 x = -x - player.width;
@@ -1031,6 +1030,16 @@
         }
         
         function updatePlayer() {
+            // 下スワイプタイマーの更新（有効時間を30フレーム = 0.5秒に制限）
+            if (gameState.downSwipeActive) {
+                gameState.downSwipeTimer--;
+                if (gameState.downSwipeTimer <= 0) {
+                    gameState.downSwipeActive = false;
+                    gameState.input.down = false;
+                    console.log('⏰ 下スワイプ有効時間終了');
+                }
+            }
+            
             // 無敵時間の更新
             if (gameState.isInvincible) {
                 gameState.invincibleTimer--;
@@ -1146,13 +1155,15 @@
             
             for (let platform of platforms) {
                 if (checkCollision(player, platform, 'プラットフォームとの')) {
-                    // 下降判定が出た場合はすり抜け処理
-                    if (gameState.input.down) {
-                        gameState.input.down = false; // 下降判定をリセット
-                        gameState.recentlyDropped = true; // 下降クールダウン開始
-                        gameState.dropFromY = player.y; // 下降開始位置を記録
+                    // 下降判定が有効で、かつプレイヤーがプラットフォームの上にいる場合のみすり抜け
+                    if (gameState.input.down && gameState.downSwipeActive && player.y < platform.y) {
+                        gameState.input.down = false;
+                        gameState.downSwipeActive = false;
+                        gameState.downSwipeTimer = 0;
+                        gameState.recentlyDropped = true;
+                        gameState.dropFromY = player.y;
                         console.log(`⬇️ プラットフォームをすり抜けて下降開始 (Y:${player.y.toFixed(0)})`);
-                        continue; // このプラットフォームの判定をスキップ
+                        continue;
                     }
                     
                     // 最近下降操作をした場合は着地判定をスキップ
@@ -1419,6 +1430,8 @@
             gameState.lastSpeedUpDistance = 0;
             gameState.speedUpNotification = false;
             gameState.speedUpNotificationTimer = 0;
+            gameState.downSwipeTimer = 0;
+            gameState.downSwipeActive = false;
             
             player.x = 150;
             player.y = 350;
@@ -1572,6 +1585,33 @@
             gameState.time++;
         }
         
+        // プレイヤーがプラットフォームの上にいるかチェックする関数
+        function isOnPlatform() {
+            // プレイヤーが地面についていない場合はfalse
+            if (!player.onGround) {
+                return false;
+            }
+            
+            // プレイヤーの下にプラットフォームがあるかチェック
+            const playerBottom = player.y + player.height;
+            const playerLeft = player.x;
+            const playerRight = player.x + player.width;
+            
+            for (let platform of platforms) {
+                // プラットフォームとの水平方向の重なりをチェック
+                const horizontalOverlap = playerRight > platform.x && playerLeft < platform.x + platform.width;
+                
+                // プラットフォームの上面との垂直距離をチェック（5ピクセル以内）
+                const verticalDistance = Math.abs(playerBottom - platform.y);
+                
+                if (horizontalOverlap && verticalDistance <= 5) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
         // タッチイベント処理
         const leftArea = document.getElementById('leftArea');
         const rightArea = document.getElementById('rightArea');
@@ -1618,14 +1658,22 @@
             const deltaY = currentY - leftTouchStartY;
             const deltaTime = Date.now() - leftTouchStartTime;
             
-            // 下スワイプ判定（15px以上下に、800ms以内で）- さらに緩い条件
-            if (deltaY > 15 && deltaTime < 800 && !leftIsSwipeDetected) {
-                leftIsSwipeDetected = true;
-                gameState.input.down = true;
-                // 下スワイプ検出時は左右移動を停止
-                gameState.input.left = false;
-                gameState.input.right = false;
-                console.log('📱 左エリア下スワイプ検出：プラットフォームから下降');
+            // 下スワイプ判定（プラットフォーム上でのみ有効）
+            if (deltaY > 15 && deltaTime < 500 && !leftIsSwipeDetected) {
+                // プラットフォームの上にいる場合のみ下スワイプを有効化
+                if (isOnPlatform()) {
+                    leftIsSwipeDetected = true;
+                    gameState.input.down = true;
+                    gameState.downSwipeActive = true;
+                    gameState.downSwipeTimer = 30; // 30フレーム = 0.5秒間有効
+                    
+                    // 下スワイプ検出時は左右移動を停止
+                    gameState.input.left = false;
+                    gameState.input.right = false;
+                    console.log('📱 プラットフォーム上で下スワイプ検出：0.5秒間有効');
+                } else {
+                    console.log('⚠️ プラットフォーム上にいないため下スワイプ無効');
+                }
                 return; // 左右移動判定をスキップ
             }
             
@@ -1690,8 +1738,6 @@
                 return;
             }
             
-
-            
             if (!gameState.gameStarted || gameState.gamePaused) return;
             
             switch(e.key) {
@@ -1708,7 +1754,15 @@
                 case 'ArrowDown':
                 case 's':
                 case 'S':
-                    gameState.input.down = true;
+                    // プラットフォームの上にいる場合のみ下降を有効化
+                    if (isOnPlatform()) {
+                        gameState.input.down = true;
+                        gameState.downSwipeActive = true;
+                        gameState.downSwipeTimer = 30; // キーボード操作でも時間制限を適用
+                        console.log('⌨️ プラットフォーム上でキーボード下降操作');
+                    } else {
+                        console.log('⚠️ プラットフォーム上にいないためキーボード下降無効');
+                    }
                     break;
                 case ' ':
                 case 'ArrowUp':
@@ -1735,7 +1789,10 @@
                 case 'ArrowDown':
                 case 's':
                 case 'S':
+                    // キーボードの場合は離した瞬間に下降判定を無効化
                     gameState.input.down = false;
+                    gameState.downSwipeActive = false;
+                    gameState.downSwipeTimer = 0;
                     break;
                 case ' ':
                 case 'ArrowUp':
