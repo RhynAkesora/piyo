@@ -280,6 +280,19 @@
         #leftArea {
             left: 0;
             width: 40%;
+            position: relative;
+        }
+        
+        #leftArea::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 10%;
+            bottom: 10%;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-50%);
+            pointer-events: none;
         }
         
         #rightArea {
