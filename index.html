@@ -373,8 +373,8 @@
             <div class="start-button-container">
                 <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
                 <div class="version-info-group">
-                    <span class="version-text" style="color: white !important;">Ver.0.83</span>
-                    <div class="last-update">LastUpDate 2025/06/03 03:12</div>
+                    <span class="version-text" style="color: white !important;">Ver.0.84</span>
+                    <div class="last-update">LastUpDate 2025/06/03 03:15</div>
                 </div>
             </div>
             <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
@@ -390,7 +390,7 @@
         </div>
         
         <div id="leftArea" class="touch-area">
-            <div style="position: absolute; left: 50%; top: 40%; transform: translateX(-50%); color: rgba(255,255,255,0.8); font-size: 3.5vw; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: none; white-space: nowrap;">Left⬅️  ➡Right</div>
+            <div style="position: absolute; left: 50%; top: 40%; transform: translateX(-50%); color: rgba(255,255,255,0.8); font-size: 3.5vw; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: none; white-space: nowrap;">Left⬅️  ➡️Right</div>
             <div style="position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.6); font-size: 2.5vw; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: none;">📱 下スワイプで降下</div>
         </div>
         <div id="rightArea" class="touch-area">⭐ ジャンプ</div>
@@ -2028,7 +2028,7 @@
         function registerServiceWorker() {
             if ('serviceWorker' in navigator) {
                 const swCode = `
-                    const CACHE_NAME = 'piyo-adventure-v0.83-${Date.now()}';
+                    const CACHE_NAME = 'piyo-adventure-v0.84-${Date.now()}';
                     const urlsToCache = [
                         './',
                         './complete_fixed_game.html'
@@ -2132,7 +2132,7 @@
                 const versionMatch = html.match(/Ver\.(\d+\.\d+)/);
                 if (versionMatch) {
                     const serverVersion = versionMatch[1];
-                    const currentVersion = '0.83'; // 現在のバージョン
+                    const currentVersion = '0.84'; // 現在のバージョン
                     
                     console.log(`サーバーバージョン: ${serverVersion}, 現在バージョン: ${currentVersion}`);
                     
