@@ -280,25 +280,26 @@
         #leftArea {
             left: 0;
             width: 40%;
-            position: relative;
-            border-right: 2px dashed rgba(255, 255, 255, 0.4);
+            background: rgba(255,182,193,0.2);
         }
         
-        #leftArea::before {
+        #leftArea::after {
             content: '';
             position: absolute;
             left: 50%;
-            top: 5%;
-            bottom: 5%;
-            width: 2px;
-            background: rgba(255, 255, 255, 0.4);
+            top: 20%;
+            bottom: 20%;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.6);
             transform: translateX(-50%);
             pointer-events: none;
+            z-index: 6;
         }
         
         #rightArea {
             right: 0;
             width: 60%;
+            background: rgba(255,182,193,0.2);
         }
         
         .version-text {
