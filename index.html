@@ -290,14 +290,14 @@
         
         #leftArea {
             left: 0;
-            width: 50%;
+            width: 70%;
             background: rgba(255,182,193,0.2);
             border-right: 1px solid rgba(255, 255, 255, 0.4);
         }
         
         #rightArea {
             right: 0;
-            width: 50%;
+            width: 30%;
             background: rgba(255,182,193,0.2);
         }
         
@@ -350,6 +350,22 @@
                 font-size: 9px;
             }
         }
+
+        /* 更新通知スタイル */
+        .update-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 10000;
+            text-align: center;
+            font-size: 18px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -364,8 +380,8 @@
             <div class="start-button-container">
                 <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
                 <div class="version-info-group">
-                    <span class="version-text" style="color: white !important;">Ver.0.902</span>
-                    <div class="last-update">LastUpDate 2025/06/03 04:02</div>
+                    <span class="version-text" style="color: white !important;">Ver.0.904</span>
+                    <div class="last-update">LastUpDate 2025/06/03 04:47</div>
                 </div>
             </div>
             <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
@@ -402,8 +418,13 @@
         </div>
     </div>
 
+    <!-- 更新通知 -->
+    <div id="updateNotification" class="update-notification">
+        🔄 新しいバージョンを取得中...
+    </div>
+
     <script>
-        console.log('=== ぴよ氏の冒険 スクリプト開始 ===');
+        console.log('=== ぴよ氏の冒険 スクリプト開始 (改善版PWA) ===');
         
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -475,6 +496,155 @@
         let terrain = [];
         let flyingEnemies = [];
         let powerUps = [];
+
+        // ========== 改善されたPWA更新システム ==========
+        let updateCheckInterval;
+        let deferredPrompt;
+        let isOnline = navigator.onLine;
+
+        // 起動時更新チェック
+        function checkForUpdatesOnStartup() {
+            if (!navigator.onLine) {
+                console.log('🔄 オフラインのため起動時更新チェックをスキップ');
+                return;
+            }
+
+            console.log('🚀 PWA起動：更新チェック開始');
+            const timestamp = Date.now();
+            const checkUrl = `${window.location.href}?startup-check=${timestamp}&cache-bust=${Math.random()}`;
+            
+            fetch(checkUrl, { 
+                cache: 'no-cache',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const versionMatch = html.match(/Ver\.(\d+\.\d{3})/);
+                if (versionMatch) {
+                    const serverVersion = versionMatch[1];
+                    const currentVersion = '0.904'; // 現在のバージョン
+                    
+                    console.log(`🔍 バージョン比較: サーバー${serverVersion} vs 現在${currentVersion}`);
+                    
+                    if (serverVersion !== currentVersion) {
+                        console.log('✨ 新バージョン検出：即座に更新開始');
+                        showUpdateNotification();
+                        setTimeout(() => {
+                            forceUpdate();
+                        }, 1000);
+                    } else {
+                        console.log('✅ 最新バージョンです');
+                    }
+                } else {
+                    console.log('⚠️ バージョン情報が見つかりません');
+                }
+            })
+            .catch(error => {
+                console.log('❌ 起動時更新チェック失敗:', error.message);
+            });
+        }
+
+        // 更新通知表示
+        function showUpdateNotification() {
+            const notification = document.getElementById('updateNotification');
+            if (notification) {
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 強制更新実行
+        function forceUpdate() {
+            console.log('🔄 強制更新を実行します');
+            
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    names.forEach(function(name) {
+                        caches.delete(name);
+                        console.log('🗑️ キャッシュ削除:', name);
+                    });
+                    // ページを完全にリロード
+                    window.location.href = window.location.href + '?force-reload=' + Date.now();
+                });
+            } else {
+                window.location.href = window.location.href + '?force-reload=' + Date.now();
+            }
+        }
+
+        // インテリジェント更新チェック開始
+        function startSmartUpdateCheck() {
+            // ゲーム中は5分ごと、非アクティブ時は2分ごと
+            const checkInterval = gameState.gameStarted && !gameState.gamePaused ? 300000 : 120000;
+            
+            clearInterval(updateCheckInterval);
+            
+            if (navigator.onLine) {
+                updateCheckInterval = setInterval(() => {
+                    if (navigator.onLine && navigator.serviceWorker.controller) {
+                        // Service Workerに手動更新チェックを依頼
+                        navigator.serviceWorker.controller.postMessage({
+                            command: 'CHECK_UPDATE'
+                        });
+                        console.log('📡 定期更新チェック実行');
+                    }
+                }, checkInterval);
+                
+                console.log(`⏰ 更新チェック間隔設定: ${checkInterval/1000}秒`);
+            }
+        }
+
+        // ネットワーク状態監視
+        function setupNetworkMonitoring() {
+            window.addEventListener('online', () => {
+                console.log('🌐 ネットワーク復帰：更新チェック開始');
+                isOnline = true;
+                // オンライン復帰時に即座に更新チェック
+                setTimeout(() => {
+                    checkForUpdatesOnStartup();
+                    startSmartUpdateCheck();
+                }, 1000);
+            });
+
+            window.addEventListener('offline', () => {
+                console.log('📴 ネットワーク切断');
+                isOnline = false;
+                clearInterval(updateCheckInterval);
+            });
+        }
+
+        // Page Visibility API対応
+        function setupVisibilityChangeDetection() {
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && navigator.onLine) {
+                    // アプリに戻った時に更新チェック
+                    console.log('👀 アプリ復帰：更新チェック実行');
+                    setTimeout(() => {
+                        checkForUpdatesOnStartup();
+                    }, 1000);
+                }
+                
+                // ゲームがアクティブな場合の処理
+                if (gameState.gameStarted && !gameState.gamePaused) {
+                    if (document.hidden) {
+                        pauseGame(); // バックグラウンド時は自動ポーズ
+                    }
+                }
+            });
+
+            // フォーカス取得時の更新チェック
+            window.addEventListener('focus', () => {
+                if (navigator.onLine) {
+                    console.log('🎯 ウィンドウフォーカス：更新チェック実行');
+                    checkForUpdatesOnStartup();
+                }
+            });
+        }
         
         // スピードアップシステム（300mごとに20%増加、上限500%）
         function updateGameSpeed() {
@@ -1451,6 +1621,9 @@
                 document.getElementById('pauseScreen').classList.add('hidden');
                 document.getElementById('pauseButton').textContent = '⏸️';
             }
+            
+            // ゲーム状態変化時に更新間隔を調整
+            startSmartUpdateCheck();
         }
         
         function handleStartScreenClick(event) {
@@ -1482,6 +1655,9 @@
             gameState.gamePaused = false;
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('pauseScreen').classList.add('hidden');
+            
+            // ゲーム開始時に更新間隔を調整
+            startSmartUpdateCheck();
             
             window.scrollTo(0, 1);
         }
@@ -1532,6 +1708,9 @@
             document.getElementById('startScreen').classList.remove('hidden');
             document.getElementById('pauseScreen').classList.add('hidden');
             document.getElementById('pauseButton').textContent = '⏸️';
+            
+            // リセット時に更新間隔を調整
+            startSmartUpdateCheck();
         }
         
         function render() {
@@ -1892,18 +2071,6 @@
             }
         });
         
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden && gameState.gameStarted && !gameState.gamePaused) {
-                pauseGame();
-            }
-        });
-        
-        window.addEventListener('blur', () => {
-            if (gameState.gameStarted && !gameState.gamePaused) {
-                pauseGame();
-            }
-        });
-        
         function resizeCanvas() {
             const container = document.getElementById('gameContainer');
             
@@ -1943,8 +2110,147 @@
             }
         }
         
+        // ========== 改善されたService Worker ==========
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'piyo-adventure-v0.904-${Date.now()}';
+                    const urlsToCache = [
+                        './',
+                        './complete_fixed_game.html'
+                    ];
+                    
+                    self.addEventListener('install', function(event) {
+                        console.log('Service Worker installing... v0.904');
+                        event.waitUntil(
+                            caches.open(CACHE_NAME)
+                                .then(function(cache) {
+                                    console.log('Opened cache v0.904');
+                                    return cache.addAll(urlsToCache);
+                                })
+                        );
+                        // 新しいService Workerを即座に有効化
+                        self.skipWaiting();
+                    });
+                    
+                    self.addEventListener('activate', function(event) {
+                        console.log('Service Worker activating... v0.904');
+                        event.waitUntil(
+                            Promise.all([
+                                // 古いキャッシュ削除
+                                caches.keys().then(function(cacheNames) {
+                                    return Promise.all(
+                                        cacheNames.map(function(cacheName) {
+                                            if (cacheName !== CACHE_NAME) {
+                                                console.log('Deleting old cache:', cacheName);
+                                                return caches.delete(cacheName);
+                                            }
+                                        })
+                                    );
+                                }),
+                                // 即座に制御を取得
+                                self.clients.claim()
+                            ])
+                        );
+                    });
+                    
+                    // メッセージハンドラ - 手動更新チェック対応
+                    self.addEventListener('message', function(event) {
+                        if (event.data && event.data.command === 'CHECK_UPDATE') {
+                            console.log('手動更新チェック要求を受信');
+                            self.registration.update().then(() => {
+                                console.log('手動更新チェック完了');
+                                // クライアントに結果を通知
+                                event.ports[0].postMessage({success: true});
+                            }).catch((error) => {
+                                console.log('手動更新チェック失敗:', error);
+                                event.ports[0].postMessage({success: false, error: error.message});
+                            });
+                        }
+                    });
+                    
+                    self.addEventListener('fetch', function(event) {
+                        // HTMLファイルは常にネットワーク優先でキャッシュバイパス
+                        if (event.request.url.includes('.html') || event.request.url === self.location.origin + '/') {
+                            event.respondWith(
+                                fetch(event.request, {
+                                    cache: 'no-cache',
+                                    headers: {
+                                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                                        'Pragma': 'no-cache',
+                                        'Expires': '0'
+                                    }
+                                }).catch(function() {
+                                    // ネットワークエラー時のみキャッシュから返す
+                                    return caches.match(event.request);
+                                })
+                            );
+                        } else {
+                            // その他のリソースは通常のキャッシュ戦略
+                            event.respondWith(
+                                fetch(event.request)
+                                    .then(function(response) {
+                                        if (response.status === 200) {
+                                            const responseToCache = response.clone();
+                                            caches.open(CACHE_NAME)
+                                                .then(function(cache) {
+                                                    cache.put(event.request, responseToCache);
+                                                });
+                                        }
+                                        return response;
+                                    })
+                                    .catch(function() {
+                                        return caches.match(event.request);
+                                    })
+                            );
+                        }
+                    });
+                `;
+                
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                
+                navigator.serviceWorker.register(swUrl).then(function(registration) {
+                    console.log('✅ Service Worker登録成功 v0.904:', registration);
+                    
+                    // 新しいService Workerが利用可能になった時の処理
+                    registration.addEventListener('updatefound', function() {
+                        const newWorker = registration.installing;
+                        console.log('🔄 新しいService Workerを検出');
+                        
+                        newWorker.addEventListener('statechange', function() {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('✨ 新しいバージョンが利用可能です v0.904');
+                                showUpdateNotification();
+                                // 3秒後に自動的にリロード
+                                setTimeout(() => {
+                                    forceUpdate();
+                                }, 3000);
+                            }
+                        });
+                    });
+                    
+                    // Service Workerからのメッセージ受信
+                    navigator.serviceWorker.addEventListener('message', function(event) {
+                        if (event.data && event.data.type === 'UPDATE_AVAILABLE') {
+                            console.log('📢 Service Workerから更新通知を受信');
+                            showUpdateNotification();
+                            setTimeout(() => {
+                                forceUpdate();
+                            }, 2000);
+                        }
+                    });
+                    
+                }).catch(function(error) {
+                    console.log('❌ Service Worker登録失敗:', error);
+                });
+            } else {
+                console.log('⚠️ Service Workerがサポートされていません');
+            }
+        }
+        
         function initialize() {
-            console.log('ゲーム初期化開始...');
+            console.log('🎮 ゲーム初期化開始...');
             
             try {
                 // タイトル画像をランダムに選択（全29枚）
@@ -1983,206 +2289,56 @@
                 const randomIndex = Math.floor(Math.random() * titleImages.length);
                 const selectedImage = titleImages[randomIndex];
                 
-                console.log('選択された画像URL:', selectedImage);
+                console.log('🖼️ 選択された画像URL:', selectedImage);
                 
                 const titleImageElement = document.getElementById('titleImage');
                 if (titleImageElement) {
                     titleImageElement.onerror = function() {
-                        console.error('画像の読み込みに失敗しました:', selectedImage);
+                        console.error('❌ 画像の読み込みに失敗しました:', selectedImage);
                         titleImageElement.src = 'https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg';
                     };
                     
                     titleImageElement.onload = function() {
-                        console.log('画像の読み込みに成功しました');
+                        console.log('✅ 画像の読み込みに成功しました');
                     };
                     
                     titleImageElement.src = selectedImage;
                     titleImageElement.style.display = 'block';
-                    console.log(`タイトル画像を選択: 画像${randomIndex + 1}/${titleImages.length}`);
+                    console.log(`🎯 タイトル画像を選択: 画像${randomIndex + 1}/${titleImages.length}`);
                 } else {
-                    console.error('タイトル画像要素が見つかりません');
+                    console.error('❌ タイトル画像要素が見つかりません');
                 }
                 
                 initTerrain();
                 resizeCanvas();
                 requestAnimationFrame(gameLoop);
                 
-                console.log('🐣 ぴよ氏の冒険 - 初期化完了！');
+                console.log('🐣 ぴよ氏の冒険 - 初期化完了！(改善版PWA)');
             } catch (error) {
-                console.error('初期化エラー:', error);
-                console.error('エラー詳細:', error.stack);
+                console.error('❌ 初期化エラー:', error);
+                console.error('🔍 エラー詳細:', error.stack);
             }
         }
         
         function checkOrientation() {
             if (window.orientation !== undefined) {
                 if (window.orientation === 0 || window.orientation === 180) {
-                    console.log('縦向きが検出されました。横向きにしてください。');
+                    console.log('📱 縦向きが検出されました。横向きにしてください。');
                 }
             }
             
             if (screen.orientation && screen.orientation.lock) {
                 screen.orientation.lock('landscape').catch(function(error) {
-                    console.log('画面の向きのロックに失敗:', error);
+                    console.log('🔒 画面の向きのロックに失敗:', error);
                 });
             }
         }
         
-        function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                const swCode = `
-                    const CACHE_NAME = 'piyo-adventure-v0.902-${Date.now()}';
-                    const urlsToCache = [
-                        './',
-                        './complete_fixed_game.html'
-                    ];
-                    
-                    self.addEventListener('install', function(event) {
-                        console.log('Service Worker installing... v0.902');
-                        event.waitUntil(
-                            caches.open(CACHE_NAME)
-                                .then(function(cache) {
-                                    console.log('Opened cache v0.902');
-                                    return cache.addAll(urlsToCache);
-                                })
-                        );
-                        // 新しいService Workerを即座に有効化
-                        self.skipWaiting();
-                    });
-                    
-                    self.addEventListener('activate', function(event) {
-                        console.log('Service Worker activating... v0.902');
-                        event.waitUntil(
-                            caches.keys().then(function(cacheNames) {
-                                return Promise.all(
-                                    cacheNames.map(function(cacheName) {
-                                        // 古いキャッシュを削除
-                                        if (cacheName !== CACHE_NAME) {
-                                            console.log('Deleting old cache:', cacheName);
-                                            return caches.delete(cacheName);
-                                        }
-                                    })
-                                );
-                            })
-                        );
-                        return self.clients.claim();
-                    });
-                    
-                    self.addEventListener('fetch', function(event) {
-                        // HTMLファイルは常にネットワーク優先
-                        if (event.request.url.includes('.html') || event.request.url === self.location.origin + '/') {
-                            event.respondWith(
-                                fetch(event.request, {
-                                    cache: 'no-cache',
-                                    headers: {
-                                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                                        'Pragma': 'no-cache'
-                                    }
-                                }).catch(function() {
-                                    return caches.match(event.request);
-                                })
-                            );
-                        } else {
-                            // その他のリソースは通常のキャッシュ戦略
-                            event.respondWith(
-                                fetch(event.request)
-                                    .then(function(response) {
-                                        if (response.status === 200) {
-                                            const responseToCache = response.clone();
-                                            caches.open(CACHE_NAME)
-                                                .then(function(cache) {
-                                                    cache.put(event.request, responseToCache);
-                                                });
-                                        }
-                                        return response;
-                                    })
-                                    .catch(function() {
-                                        return caches.match(event.request);
-                                    })
-                            );
-                        }
-                    });
-                `;
-                
-                const blob = new Blob([swCode], { type: 'application/javascript' });
-                const swUrl = URL.createObjectURL(blob);
-                
-                navigator.serviceWorker.register(swUrl).then(function(registration) {
-                    console.log('Service Worker登録成功 v0.902:', registration);
-                    
-                    // 新しいService Workerが利用可能になった時の処理
-                    registration.addEventListener('updatefound', function() {
-                        const newWorker = registration.installing;
-                        newWorker.addEventListener('statechange', function() {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('新しいバージョンが利用可能です v0.902');
-                                // 自動的にリロード（確認なし）
-                                window.location.reload(true);
-                            }
-                        });
-                    });
-                    
-                    // 定期的に更新をチェック
-                    setInterval(function() {
-                        registration.update();
-                    }, 60000); // 1分ごと
-                    
-                }).catch(function(error) {
-                    console.log('Service Worker登録失敗:', error);
-                });
-            }
-        }
-        
-        function checkForUpdates() {
-            // 強制的にキャッシュをバイパスして最新状態をチェック
-            const currentTime = new Date().getTime();
-            const checkUrl = `${window.location.href}?t=${currentTime}&cache-bust=${Math.random()}`;
-            
-            fetch(checkUrl, { 
-                cache: 'no-cache',
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                }
-            })
-            .then(response => response.text())
-            .then(html => {
-                // HTMLから現在のバージョンを抽出（新形式に対応 - 0.001刻み）
-                const versionMatch = html.match(/Ver\.(\d+\.\d{3})/);
-                if (versionMatch) {
-                    const serverVersion = versionMatch[1];
-                    const currentVersion = '0.902'; // 現在のバージョン
-                    
-                    console.log(`サーバーバージョン: ${serverVersion}, 現在バージョン: ${currentVersion}`);
-                    
-                    if (serverVersion !== currentVersion) {
-                        console.log('新しいバージョンが利用可能です！強制更新を実行します');
-                        // 確認なしで強制更新
-                        if ('caches' in window) {
-                            caches.keys().then(function(names) {
-                                names.forEach(function(name) {
-                                    caches.delete(name);
-                                });
-                                // ページを完全にリロード
-                                window.location.href = window.location.href + '?force-reload=' + Date.now();
-                            });
-                        } else {
-                            window.location.href = window.location.href + '?force-reload=' + Date.now();
-                        }
-                    } else {
-                        console.log('最新バージョンです v' + currentVersion);
-                    }
-                }
-            })
-            .catch(error => {
-                console.log('アップデートチェックに失敗:', error);
-            });
-        }
+        // PWAインストールプロンプト
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            console.log('PWAインストール可能');
+            console.log('📱 PWAインストール可能');
             
             setTimeout(() => {
                 if (deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) {
@@ -2190,7 +2346,7 @@
                         deferredPrompt.prompt();
                         deferredPrompt.userChoice.then((choiceResult) => {
                             if (choiceResult.outcome === 'accepted') {
-                                console.log('PWAインストール受諾');
+                                console.log('✅ PWAインストール受諾');
                             }
                             deferredPrompt = null;
                         });
@@ -2199,28 +2355,42 @@
             }, 5000);
         });
         
-        console.log('スクリプト読み込み完了');
+        console.log('📝 スクリプト読み込み完了');
         
+        // ========== 初期化処理 ==========
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM読み込み完了 - 初期化開始');
+            console.log('🚀 DOM読み込み完了 - 初期化開始');
             
+            // PWA更新システムのセットアップ
+            setupNetworkMonitoring();
+            setupVisibilityChangeDetection();
             registerServiceWorker();
             
             const canvasCheck = document.getElementById('gameCanvas');
             const titleImageCheck = document.getElementById('titleImage');
             
-            console.log('Canvas要素:', canvasCheck ? '存在する' : '存在しない');
-            console.log('タイトル画像要素:', titleImageCheck ? '存在する' : '存在しない');
+            console.log('🎮 Canvas要素:', canvasCheck ? '存在する' : '存在しない');
+            console.log('🖼️ タイトル画像要素:', titleImageCheck ? '存在する' : '存在しない');
             
             setTimeout(function() {
                 try {
-                    console.log('初期化関数を呼び出します...');
+                    console.log('⚡ 初期化関数を呼び出します...');
+                    
+                    // 起動時更新チェックを実行
+                    checkForUpdatesOnStartup();
+                    
+                    // ゲーム初期化
                     initialize();
                     checkOrientation();
                     
+                    // インテリジェント更新チェック開始
+                    startSmartUpdateCheck();
+                    
                     window.addEventListener('orientationchange', function() {
-                        checkOrientation();
-                        resizeCanvas();
+                        setTimeout(() => {
+                            checkOrientation();
+                            resizeCanvas();
+                        }, 100);
                     });
                     
                     setTimeout(function() {
@@ -2228,15 +2398,16 @@
                     }, 100);
                     
                 } catch (error) {
-                    console.error('初期化中にエラーが発生しました:', error);
-                    console.error('エラースタック:', error.stack);
+                    console.error('❌ 初期化中にエラーが発生しました:', error);
+                    console.error('🔍 エラースタック:', error.stack);
                     alert('ゲームの初期化に失敗しました。コンソールを確認してください。\nエラー: ' + error.message);
                 }
             }, 100);
         });
         
-        console.log('スクリプト読み込み完了');
+        console.log('📚 スクリプト読み込み完了 (改善版PWA対応)');
         
+        // ========== イベントリスナー ==========
         window.addEventListener('resize', () => {
             resizeCanvas();
             checkOrientation();
@@ -2249,11 +2420,25 @@
             }, 100);
         });
         
+        // タッチムーブイベントの制御
         document.addEventListener('touchmove', (e) => {
             if (e.target.tagName !== 'INPUT') {
                 e.preventDefault();
             }
         }, { passive: false });
+
+        // ページの非表示・表示イベント
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && gameState.gameStarted && !gameState.gamePaused) {
+                pauseGame();
+            }
+        });
+        
+        window.addEventListener('blur', () => {
+            if (gameState.gameStarted && !gameState.gamePaused) {
+                pauseGame();
+            }
+        });
     </script>
 </body>
 </html>
