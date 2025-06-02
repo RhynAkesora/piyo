@@ -350,7 +350,7 @@
             <div class="start-button-container">
                 <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
                 <div class="version-info-group">
-                    <span class="version-text" style="color: white !important;">Ver.0.76</span>
+                    <span class="version-text" style="color: white !important;">Ver.0.77</span>
                     <div class="last-update">LastUpDate 2025/06/03</div>
                 </div>
             </div>
@@ -375,6 +375,7 @@
             <div>📏 <span id="distance">0</span>m</div>
             <div>✨ <span id="score">0</span></div>
             <div>💖 <span id="lives">3</span></div>
+            <div>👹 <span id="enemyKills">0</span>体撃破</div>
             <div>⚡ レベル<span id="speedLevel">1</span> (<span id="speedPercent">100</span>%)</div>
             <div>📈 次まで<span id="nextSpeedUp">300</span>m</div>
         </div>
@@ -431,7 +432,8 @@
             speedUpNotificationTimer: 0,
             downSwipeTimer: 0,  // 下スワイプの有効時間を管理
             downSwipeActive: false,  // 下スワイプが有効かどうか
-            isRespawning: false  // 復活中かどうか
+            isRespawning: false,  // 復活中かどうか
+            enemyKills: 0  // 撃破した敵の数
         };
         
         let player = {
@@ -507,6 +509,7 @@
             document.getElementById('distance').textContent = gameState.distance;
             document.getElementById('score').textContent = gameState.score;
             document.getElementById('lives').textContent = gameState.lives;
+            document.getElementById('enemyKills').textContent = gameState.enemyKills;
             
             // スピード情報の更新（20%ずつ増加、上限500%）
             const speedPercent = Math.min(500, Math.round((100 + (gameState.speedLevel - 1) * 20)));
@@ -1244,6 +1247,7 @@
                         console.log(`🔥 無敵状態で敵を撃破！タイプ: ${enemy.type}`);
                         enemies.splice(i, 1); // 敵を配列から削除
                         gameState.score += 200;
+                        gameState.enemyKills++; // 撃破数をカウント
                         continue;
                     }
                     
@@ -1262,6 +1266,7 @@
                         enemies.splice(i, 1);
                         player.velY = JUMP_FORCE / 2;
                         gameState.score += 200;
+                        gameState.enemyKills++; // 撃破数をカウント
                         console.log(`👟 敵を踏んで撃破！タイプ: ${enemy.type}`);
                     } else {
                         // 横から衝突した場合 - ダメージ
@@ -1283,6 +1288,7 @@
                         console.log(`🔥 無敵状態で空中敵を撃破！タイプ: ${enemy.type}`);
                         flyingEnemies.splice(i, 1); // 敵を配列から削除
                         gameState.score += 300;
+                        gameState.enemyKills++; // 撃破数をカウント
                         continue;
                     }
                     
@@ -1301,6 +1307,7 @@
                         flyingEnemies.splice(i, 1);
                         player.velY = JUMP_FORCE / 2;
                         gameState.score += 300;
+                        gameState.enemyKills++; // 撃破数をカウント
                         console.log(`👟 空中敵を踏んで撃破！タイプ: ${enemy.type}`);
                     } else {
                         // 横から衝突した場合 - ダメージ
@@ -1406,6 +1413,7 @@
                       `それはちょっと世間は許してくれませんよ〜🐤\n` +
                       `到達距離: ${gameState.distance}m\n` +
                       `最終スコア: ${gameState.score}点\n` +
+                      `敵撃破数: ${gameState.enemyKills}体\n` +
                       `到達レベル: ${gameState.speedLevel}`);
                 resetGame();
             }, 500);
@@ -1483,6 +1491,7 @@
             gameState.downSwipeTimer = 0;
             gameState.downSwipeActive = false;
             gameState.isRespawning = false;
+            gameState.enemyKills = 0;
             
             player.x = 150;
             player.y = 350;
