@@ -326,7 +326,7 @@
             <div class="instruction-text">👈 左エリア: 移動・下スワイプで降下 / 👆 右エリア: ジャンプ</div>
             <div class="start-button-container">
                 <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
-                <span class="version-text" style="color: white !important;">Ver.0.73</span>
+                <span class="version-text" style="color: white !important;">Ver.0.76</span>
             </div>
             <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
                 画面をタップまたはスペースキーで開始
@@ -404,7 +404,8 @@
             speedUpNotification: false,
             speedUpNotificationTimer: 0,
             downSwipeTimer: 0,  // 下スワイプの有効時間を管理
-            downSwipeActive: false  // 下スワイプが有効かどうか
+            downSwipeActive: false,  // 下スワイプが有効かどうか
+            isRespawning: false  // 復活中かどうか
         };
         
         let player = {
@@ -1110,7 +1111,14 @@
                 gameState.input.jumpPressed = false;
             }
             
-            player.velY += GRAVITY;
+            // 復活中は落下速度を5分の1に制限
+            let currentGravity = GRAVITY;
+            if (gameState.isRespawning) {
+                currentGravity = GRAVITY / 5;
+                console.log('🪂 復活中：落下速度を5分の1に制限');
+            }
+            
+            player.velY += currentGravity;
             if (player.velY > 15) player.velY = 15;
             
             player.x += player.velX;
@@ -1138,6 +1146,12 @@
                         player.y = t.y - player.height;
                         player.velY = 0;
                         player.onGround = true;
+                        
+                        // 復活中に地面に着地したら復活状態を解除
+                        if (gameState.isRespawning) {
+                            gameState.isRespawning = false;
+                            console.log('🏠 地面に着地：復活状態解除、通常の落下速度に戻る');
+                        }
                     }
                     else if (player.velX > 0 && playerRight - player.velX <= t.x) {
                         player.x = t.x - player.width;
@@ -1175,6 +1189,12 @@
                         player.y = platform.y - player.height;
                         player.velY = 0;
                         player.onGround = true;
+                        
+                        // 復活中にプラットフォームに着地したら復活状態を解除
+                        if (gameState.isRespawning) {
+                            gameState.isRespawning = false;
+                            console.log('☁️ プラットフォームに着地：復活状態解除、通常の落下速度に戻る');
+                        }
                     }
                 }
             }
@@ -1345,6 +1365,10 @@
             player.velX = 0;
             player.velY = 0;
             
+            // 復活状態を開始
+            gameState.isRespawning = true;
+            console.log('💫 復活開始：落下速度を5分の1に制限');
+            
             gameState.camera.x = Math.max(100, gameState.camera.x - 200);
         }
         
@@ -1432,6 +1456,7 @@
             gameState.speedUpNotificationTimer = 0;
             gameState.downSwipeTimer = 0;
             gameState.downSwipeActive = false;
+            gameState.isRespawning = false;
             
             player.x = 150;
             player.y = 350;
