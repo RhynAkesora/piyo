@@ -403,13 +403,13 @@
             <div class="instruction-text">画面をタップまたはスペースキーで再開</div>
         </div>
         
-        <div id="rankingScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 25; padding: 20px; overflow-y: auto;">
-            <div style="color: #ffd700; font-size: 6vw; font-weight: bold; margin-bottom: 20px;">🏆 ランキング</div>
-            <div id="rankingList" style="background: rgba(0,0,0,0.9); border-radius: 10px; padding: 20px; max-width: 80vw; max-height: 60vh; overflow-y: auto; color: white; font-size: 3vw;">
-                <div style="text-align: center;">📡 読み込み中...</div>
-            </div>
-            <button class="game-button" onclick="hideRanking()" style="margin-top: 20px;">🔙 戻る</button>
-        </div>
+        <div id="rankingScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 30;">
+    <div style="color: #ffd700; font-size: 6vw; font-weight: bold; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">🏆 ランキング</div>
+    <div id="rankingList" style="background: rgba(0,0,0,0.8); border: 2px solid #ff69b4; border-radius: 10px; padding: 20px; max-width: 80vw; max-height: 60vh; overflow-y: auto; color: white; font-size: 3vw; min-height: 200px;">
+        <div style="text-align: center; color: white;">📡 読み込み中...</div>
+    </div>
+    <button class="game-button" onclick="hideRanking()" style="margin-top: 20px; z-index: 31;">🔙 戻る</button>
+</div>
         <div id="nameInputScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 25;">
             <div style="color: #ffd700; font-size: 6vw; font-weight: bold; margin-bottom: 20px;">🎉 ハイスコア！</div>
             <div style="color: white; font-size: 4vw; margin-bottom: 10px;">ランキングに記録します</div>
@@ -495,43 +495,65 @@
         }
 
         async function showRanking() {
-            document.getElementById('startScreen').classList.add('hidden');
-            document.getElementById('rankingScreen').classList.remove('hidden');
-            
-            const rankingList = document.getElementById('rankingList');
-            rankingList.innerHTML = '<div style="text-align: center;">📡 読み込み中...</div>';
-            
-            try {
-                const snapshot = await database.ref('scores').orderByChild('score').limitToLast(20).once('value');
-                const data = snapshot.val();
-                
-                if (!data) {
-                    rankingList.innerHTML = '<div style="text-align: center;">📊 まだランキングデータがありません</div>';
-                    return;
-                }
-                
-                const rankings = Object.values(data).sort((a, b) => b.score - a.score);
-                
-                let html = '';
-                rankings.forEach((entry, index) => {
-                    const rank = index + 1;
-                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏅';
-                    html += `<div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.2);">
-                                <span>${medal}${rank}. ${entry.name}</span>
-                                <span style="color: #ffd700;">${entry.score}点</span>
-                             </div>`;
-                });
-                
-                rankingList.innerHTML = html;
-            } catch (error) {
-                rankingList.innerHTML = '<div style="text-align: center;">❌ 読み込みに失敗しました</div>';
-            }
+    console.log('🏆 ランキング画面表示開始');
+    
+    // 他の画面を隠す
+    document.getElementById('startScreen').classList.add('hidden');
+    
+    // ランキング画面を表示
+    const rankingScreen = document.getElementById('rankingScreen');
+    rankingScreen.classList.remove('hidden');
+    rankingScreen.style.display = 'flex';
+    
+    const rankingList = document.getElementById('rankingList');
+    rankingList.innerHTML = '<div style="text-align: center; color: white;">📡 読み込み中...</div>';
+    
+    console.log('📡 Firebase接続開始');
+    
+    try {
+        // Firebaseが初期化されているかチェック
+        if (typeof firebase === 'undefined') {
+            throw new Error('Firebase未初期化');
         }
+        
+        const snapshot = await database.ref('scores').orderByChild('score').limitToLast(20).once('value');
+        const data = snapshot.val();
+        
+        console.log('📊 取得データ:', data);
+        
+        if (!data) {
+            rankingList.innerHTML = '<div style="text-align: center; color: white;">📊 まだランキングデータがありません</div>';
+            return;
+        }
+        
+        const rankings = Object.values(data).sort((a, b) => b.score - a.score);
+        console.log('🏆 ソート済みランキング:', rankings);
+        
+        let html = '';
+        rankings.forEach((entry, index) => {
+            const rank = index + 1;
+            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏅';
+            html += `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.3); color: white;">
+                        <span>${medal}${rank}. ${entry.name}</span>
+                        <span style="color: #ffd700; font-weight: bold;">${entry.score}点</span>
+                     </div>`;
+        });
+        
+        rankingList.innerHTML = html;
+        console.log('✅ ランキング表示完了');
+        
+    } catch (error) {
+        console.error('❌ ランキング読み込みエラー:', error);
+        rankingList.innerHTML = '<div style="text-align: center; color: white;">❌ 読み込みに失敗しました<br>エラー: ' + error.message + '</div>';
+    }
+}
 
-        function hideRanking() {
-            document.getElementById('rankingScreen').classList.add('hidden');
-            document.getElementById('startScreen').classList.remove('hidden');
-        }
+function hideRanking() {
+    console.log('🔙 ランキング画面を非表示');
+    document.getElementById('rankingScreen').classList.add('hidden');
+    document.getElementById('rankingScreen').style.display = 'none';
+    document.getElementById('startScreen').classList.remove('hidden');
+}
 
         function showNameInput() {
             document.getElementById('nameInputScreen').classList.remove('hidden');
