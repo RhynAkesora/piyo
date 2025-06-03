@@ -387,7 +387,7 @@
                <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
                <div class="version-info-group">
                    <span class="version-text" style="color: white !important;">Ver.0.908</span>
-                   <div class="last-update">LastUpDate 2025/06/04 02:30</div>
+                   <div class="last-update">LastUpDate 2025/06/04 02:40</div>
                </div>
            </div>
            <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
@@ -569,8 +569,9 @@ function hideRanking() {
         function showNameInput() {
     console.log('👤 showNameInput関数開始');
     
-    // ゲーム画面を停止
+    // ゲームを完全に停止
     gameState.gameStarted = false;
+    gameState.gamePaused = true;
     
     // 名前入力画面を表示
     const nameInputScreen = document.getElementById('nameInputScreen');
@@ -1803,6 +1804,7 @@ function hideRanking() {
         async function gameOver() {
     console.log('🎮 gameOver関数開始');
     gameState.gameStarted = false;
+    gameState.gamePaused = true;
     
     // 最終成績を保存
     finalGameStats = {
