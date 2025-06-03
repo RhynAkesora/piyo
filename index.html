@@ -1751,46 +1751,47 @@ function hideRanking() {
         }
         
         async function gameOver() {
-            gameState.gameStarted = false;
-            
-            // 最終成績を保存
-            finalGameStats = {
-                score: gameState.score,
-                distance: gameState.distance,
-                enemyKills: gameState.enemyKills,
-                speedLevel: gameState.speedLevel
-            };
-            
-            // ハイスコア判定
-            try {
-                const isHighScore = await checkHighScore(finalGameStats.score);
-                
-                setTimeout(() => {
-                    if (isHighScore) {
-                        showNameInput();
-                    } else {
-                        alert(`ゲームオーバー\n` +
-                              `それはちょっと世間は許してくれませんよ〜🐤\n` +
-                              `到達距離: ${finalGameStats.distance}m\n` +
-                              `最終スコア: ${finalGameStats.score}点\n` +
-                              `敵撃破数: ${finalGameStats.enemyKills}体\n` +
-                              `到達レベル: ${finalGameStats.speedLevel}`);
-                        resetGame();
-                    }
-                }, 500);
-                
-            } catch (error) {
-                setTimeout(() => {
-                    alert(`ゲームオーバー\n` +
-                          `それはちょっと世間は許してくれませんよ〜🐤\n` +
-                          `到達距離: ${finalGameStats.distance}m\n` +
-                          `最終スコア: ${finalGameStats.score}点\n` +
-                          `敵撃破数: ${finalGameStats.enemyKills}体\n` +
-                          `到達レベル: ${finalGameStats.speedLevel}`);
-                    resetGame();
-                }, 500);
+    gameState.gameStarted = false;
+    
+    // 最終成績を保存
+    finalGameStats = {
+        score: gameState.score,
+        distance: gameState.distance,
+        enemyKills: gameState.enemyKills,
+        speedLevel: gameState.speedLevel
+    };
+    
+    // ハイスコア判定
+    try {
+        const isHighScore = await checkHighScore(finalGameStats.score);
+        
+        setTimeout(() => {
+            if (isHighScore) {
+                showNameInput();
+            } else {
+                alert(`ゲームオーバー\n` +
+                      `それはちょっと世間は許してくれませんよ〜🐤\n` +
+                      `到達距離: ${finalGameStats.distance}m\n` +
+                      `最終スコア: ${finalGameStats.score}点\n` +
+                      `敵撃破数: ${finalGameStats.enemyKills}体\n` +
+                      `到達レベル: ${finalGameStats.speedLevel}`);
+                resetGame();
             }
-        }
+        }, 500);
+        
+    } catch (error) {
+        console.error('ゲームオーバー処理エラー:', error);
+        setTimeout(() => {
+            alert(`ゲームオーバー\n` +
+                  `それはちょっと世間は許してくれませんよ〜🐤\n` +
+                  `到達距離: ${finalGameStats.distance}m\n` +
+                  `最終スコア: ${finalGameStats.score}点\n` +
+                  `敵撃破数: ${finalGameStats.enemyKills}体\n` +
+                  `到達レベル: ${finalGameStats.speedLevel}`);
+            resetGame();
+        }, 500);
+    }
+}
         
         function pauseGame() {
             if (!gameState.gameStarted) return;
