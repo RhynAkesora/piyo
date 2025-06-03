@@ -1665,17 +1665,20 @@ function hideRanking() {
         }
         
         function takeDamage() {
-            if (gameState.isInvincible) return;
-            
-            gameState.lives--;
-            gameState.isInvincible = true;
-            gameState.invincibleTimer = INVINCIBLE_TIME;
-            resetPlayerPosition();
-            
-            if (gameState.lives <= 0) {
-                gameOver();
-            }
-        }
+    if (gameState.isInvincible) return;
+    
+    gameState.lives--;
+    gameState.isInvincible = true;
+    gameState.invincibleTimer = INVINCIBLE_TIME;
+    resetPlayerPosition();
+    
+    console.log('ダメージ！残りライフ:', gameState.lives); // デバッグ用
+    
+    if (gameState.lives <= 0) {
+        console.log('ライフ0！ゲームオーバー処理開始'); // デバッグ用
+        gameOver();
+    }
+}
         
         function updateCoins() {
             for (let coin of coins) {
