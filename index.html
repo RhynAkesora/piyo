@@ -387,7 +387,7 @@
                <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
                <div class="version-info-group">
                    <span class="version-text" style="color: white !important;">Ver.0.908</span>
-                   <div class="last-update">LastUpDate 2025/06/04 02:03</div>
+                   <div class="last-update">LastUpDate 2025/06/04 02:08</div>
                </div>
            </div>
            <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
@@ -556,10 +556,32 @@ function hideRanking() {
 }
 
         function showNameInput() {
-            document.getElementById('nameInputScreen').classList.remove('hidden');
-            document.getElementById('scoreToSubmit').textContent = `スコア: ${finalGameStats.score}点 | 距離: ${finalGameStats.distance}m`;
-            document.getElementById('playerNameInput').value = '';
-        }
+    console.log('👤 showNameInput関数開始');
+    
+    // ゲーム画面を停止
+    gameState.gameStarted = false;
+    
+    // 名前入力画面を表示
+    const nameInputScreen = document.getElementById('nameInputScreen');
+    if (nameInputScreen) {
+        console.log('👤 名前入力画面要素発見');
+        nameInputScreen.classList.remove('hidden');
+        nameInputScreen.style.display = 'flex';
+        console.log('👤 名前入力画面表示完了');
+        
+        // スコア情報を表示
+        document.getElementById('scoreToSubmit').textContent = `スコア: ${finalGameStats.score}点 | 距離: ${finalGameStats.distance}m`;
+        
+        // 入力フィールドをクリア・フォーカス
+        const nameInput = document.getElementById('playerNameInput');
+        nameInput.value = '';
+        nameInput.focus();
+        
+        console.log('👤 名前入力画面の設定完了');
+    } else {
+        console.error('❌ 名前入力画面要素が見つかりません');
+    }
+}
 
         function hideNameInput() {
             document.getElementById('nameInputScreen').classList.add('hidden');
