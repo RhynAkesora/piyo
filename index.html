@@ -386,8 +386,8 @@
            <div class="start-button-container">
                <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.909</span>
-                   <div class="last-update">LastUpDate 2025/06/04 03:10</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.910</span>
+                   <div class="last-update">LastUpDate 2025/06/04 03:20</div>
                </div>
            </div>
            <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
@@ -407,10 +407,11 @@
     <div style="color: #ffd700; font-size: 6vw; font-weight: bold; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">🏆 ランキング</div>
     
     <!-- ランキング切り替えボタン -->
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <button class="game-button" onclick="showRankingByType('score')" id="scoreRankingBtn" style="font-size: 3vw; padding: 8px 15px; min-width: auto;">📊 スコア</button>
-        <button class="game-button" onclick="showRankingByType('distance')" id="distanceRankingBtn" style="font-size: 3vw; padding: 8px 15px; min-width: auto;">📏 距離</button>
-        <button class="game-button" onclick="showRankingByType('enemyKills')" id="killsRankingBtn" style="font-size: 3vw; padding: 8px 15px; min-width: auto;">👹 撃破</button>
+    <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;">
+        <button class="game-button" onclick="showRankingByType('score')" id="scoreRankingBtn" style="font-size: 2.5vw; padding: 6px 12px; min-width: auto;">📊 スコア</button>
+        <button class="game-button" onclick="showRankingByType('distance')" id="distanceRankingBtn" style="font-size: 2.5vw; padding: 6px 12px; min-width: auto;">📏 距離</button>
+        <button class="game-button" onclick="showRankingByType('enemyKills')" id="killsRankingBtn" style="font-size: 2.5vw; padding: 6px 12px; min-width: auto;">👹 撃破</button>
+        <button class="game-button" onclick="showRankingByType('speedLevel')" id="levelRankingBtn" style="font-size: 2.5vw; padding: 6px 12px; min-width: auto;">⚡ レベル</button>
     </div>
     
     <div id="rankingList" style="background: rgba(0,0,0,0.8); border: 2px solid #ff69b4; border-radius: 10px; padding: 20px; max-width: 80vw; max-height: 60vh; overflow-y: auto; color: white; font-size: 3vw; min-height: 200px;">
@@ -560,13 +561,15 @@ async function showRankingByType(type) {
         const titles = {
             score: '📊 スコアランキング',
             distance: '📏 距離ランキング',
-            enemyKills: '👹 撃破数ランキング'
+            enemyKills: '👹 撃破数ランキング',
+            speedLevel: '⚡ レベルランキング'
         };
         
         const units = {
             score: '点',
             distance: 'm',
-            enemyKills: '体'
+            enemyKills: '体',
+            speedLevel: 'レベル'
         };
         
         let html = `<div style="text-align: center; color: #ffd700; font-weight: bold; margin-bottom: 15px; font-size: 4vw;">${titles[type]}</div>`;
@@ -593,7 +596,7 @@ async function showRankingByType(type) {
 
 function updateRankingButtons(activeType) {
     // 全ボタンのスタイルをリセット
-    const buttons = ['scoreRankingBtn', 'distanceRankingBtn', 'killsRankingBtn'];
+    const buttons = ['scoreRankingBtn', 'distanceRankingBtn', 'killsRankingBtn', 'levelRankingBtn'];
     buttons.forEach(btnId => {
         const btn = document.getElementById(btnId);
         if (btn) {
@@ -606,7 +609,8 @@ function updateRankingButtons(activeType) {
     const activeButtonIds = {
         score: 'scoreRankingBtn',
         distance: 'distanceRankingBtn',
-        enemyKills: 'killsRankingBtn'
+        enemyKills: 'killsRankingBtn',
+        speedLevel: 'levelRankingBtn'
     };
     
     const activeBtn = document.getElementById(activeButtonIds[activeType]);
