@@ -480,7 +480,7 @@
                    <div class="last-update">LastUpDate 2025/06/04 06:17</div>
                </div>
            </div>
-<button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
+<button id="rankingButton" class="game-button" onclick="showRanking(); event.stopPropagation();">🏆 ランキング</button>
 <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
     画面をタップまたはスペースキーで開始
 </div>
@@ -2025,6 +2025,7 @@ function hideRanking() {
         
         function handleStartScreenClick(event) {
             if (event.target.id === 'startButton') return;
+            if (event.target.id === 'rankingButton') return;
             startGame();
         }
         
