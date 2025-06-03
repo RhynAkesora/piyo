@@ -2544,9 +2544,9 @@ function hideRanking() {
             console.log('🚀 DOM読み込み完了 - 初期化開始');
             
             // PWA更新システムのセットアップ
-            setupNetworkMonitoring();
-            setupVisibilityChangeDetection();
-            registerServiceWorker();
+            // setupNetworkMonitoring();
+            // setupVisibilityChangeDetection();
+            // registerServiceWorker();
             
             const canvasCheck = document.getElementById('gameCanvas');
             const titleImageCheck = document.getElementById('titleImage');
@@ -2559,14 +2559,14 @@ function hideRanking() {
                     console.log('⚡ 初期化関数を呼び出します...');
                     
                     // 起動時更新チェックを実行
-                    checkForUpdatesOnStartup();
+                    // checkForUpdatesOnStartup();
                     
                     // ゲーム初期化
                     initialize();
                     checkOrientation();
                     
                     // インテリジェント更新チェック開始
-                    startSmartUpdateCheck();
+                    // startSmartUpdateCheck();
                     
                     window.addEventListener('orientationchange', function() {
                         setTimeout(() => {
