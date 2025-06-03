@@ -385,6 +385,28 @@
             font-size: 18px;
             display: none;
         }
+
+        #rankingScreen {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100vh !important;
+            background: rgba(0,0,0,0.9) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            z-index: 30 !important;
+            padding: 10px !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+        }
+        
+        #rankingScreen.hidden {
+            display: none !important;
+        }        
+        
         /* スマホでスタートボタンを非表示 */
         @media (max-width: 599px) {
             #startButton {
@@ -431,8 +453,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.914</span>
-                   <div class="last-update">LastUpDate 2025/06/04 05:15</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.915</span>
+                   <div class="last-update">LastUpDate 2025/06/04 05:25</div>
                </div>
            </div>
 <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
@@ -449,21 +471,21 @@
             <div class="instruction-text">画面をタップまたはスペースキーで再開</div>
         </div>
         
-        <div id="rankingScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 30;">
-    <div style="color: #ffd700; font-size: 6vw; font-weight: bold; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">🏆 ランキング</div>
+        <div id="rankingScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: flex-start; align-items: center; z-index: 30; padding: 10px; box-sizing: border-box; overflow: hidden;">
+    <div style="color: #ffd700; font-size: 5vw; font-weight: bold; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">🏆 ランキング</div>
     
     <!-- ランキング切り替えボタン -->
-    <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;">
-        <button class="game-button" onclick="showRankingByType('score')" id="scoreRankingBtn" style="font-size: 2.5vw; padding: 6px 12px; min-width: auto;">📊 スコア</button>
-        <button class="game-button" onclick="showRankingByType('distance')" id="distanceRankingBtn" style="font-size: 2.5vw; padding: 6px 12px; min-width: auto;">📏 距離</button>
-        <button class="game-button" onclick="showRankingByType('enemyKills')" id="killsRankingBtn" style="font-size: 2.5vw; padding: 6px 12px; min-width: auto;">👹 撃破</button>
-        <button class="game-button" onclick="showRankingByType('speedLevel')" id="levelRankingBtn" style="font-size: 2.5vw; padding: 6px 12px; min-width: auto;">⚡ レベル</button>
+    <div style="display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center;">
+        <button class="game-button" onclick="showRankingByType('score')" id="scoreRankingBtn" style="font-size: 2vw; padding: 4px 8px; min-width: auto; margin: 2px;">📊 スコア</button>
+        <button class="game-button" onclick="showRankingByType('distance')" id="distanceRankingBtn" style="font-size: 2vw; padding: 4px 8px; min-width: auto; margin: 2px;">📏 距離</button>
+        <button class="game-button" onclick="showRankingByType('enemyKills')" id="killsRankingBtn" style="font-size: 2vw; padding: 4px 8px; min-width: auto; margin: 2px;">👹 撃破</button>
+        <button class="game-button" onclick="showRankingByType('speedLevel')" id="levelRankingBtn" style="font-size: 2vw; padding: 4px 8px; min-width: auto; margin: 2px;">⚡ レベル</button>
     </div>
     
-    <div id="rankingList" style="background: rgba(0,0,0,0.8); border: 2px solid #ff69b4; border-radius: 10px; padding: 20px; max-width: 80vw; max-height: 60vh; overflow-y: auto; color: white; font-size: 3vw; min-height: 200px;">
+    <div id="rankingList" style="background: rgba(0,0,0,0.8); border: 2px solid #ff69b4; border-radius: 10px; padding: 10px; width: 95vw; height: 60vh; overflow-y: auto; color: white; font-size: 3vw; -webkit-overflow-scrolling: touch;">
         <div style="text-align: center; color: white;">📡 読み込み中...</div>
     </div>
-    <button class="game-button" onclick="hideRanking()" style="margin-top: 20px; z-index: 31;">🔙 戻る</button>
+    <button class="game-button" onclick="hideRanking()" style="margin-top: 10px; z-index: 31; font-size: 3vw; padding: 8px 16px;">🔙 戻る</button>
 </div>
         <div id="nameInputScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 25;">
             <div style="color: #ffd700; font-size: 6vw; font-weight: bold; margin-bottom: 20px;">🎉 ハイスコア！</div>
@@ -625,7 +647,7 @@ async function showRankingByType(type) {
             const rankClass = rank <= 3 ? `rank-${rank}` : '';
             const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏅';
             
-            html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.3); color: white;">
+            html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.3); color: white; font-size: 2.5vw;">
                         <span style="color: ${rank <= 3 ? '#ffd700' : 'white'};">${medal}${rank}. ${entry.name}</span>
                         <span style="color: #ffd700; font-weight: bold;">${entry[type]}${units[type]}</span>
                      </div>`;
