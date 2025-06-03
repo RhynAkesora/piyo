@@ -387,7 +387,7 @@
                <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
                <div class="version-info-group">
                    <span class="version-text" style="color: white !important;">Ver.0.908</span>
-                   <div class="last-update">LastUpDate 2025/06/04 02:08</div>
+                   <div class="last-update">LastUpDate 2025/06/04 02:18</div>
                </div>
            </div>
            <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
@@ -467,32 +467,43 @@
 
         // ランキング機能
         async function submitScore() {
-            const playerName = document.getElementById('playerNameInput').value.trim();
-            if (!playerName) { alert('お名前を入力してください！'); return; }
-            
-            try {
-                await database.ref('scores').push({
-                    name: playerName,
-                    score: finalGameStats.score,
-                    distance: finalGameStats.distance,
-                    enemyKills: finalGameStats.enemyKills,
-                    speedLevel: finalGameStats.speedLevel,
-                    timestamp: Date.now(),
-                    date: new Date().toLocaleDateString('ja-JP')
-                });
-                
-                alert(`🎉 ランキングに登録しました！\n${playerName}さん、お疲れ様でした！`);
-                hideNameInput();
-                showRanking();
-            } catch (error) {
-                alert('スコアの送信に失敗しました。');
-            }
-        }
+    console.log('📝 submitScore関数開始');
+    
+    const playerName = document.getElementById('playerNameInput').value.trim();
+    console.log('👤 入力された名前:', playerName);
+    
+    if (!playerName) { 
+        alert('お名前を入力してください！'); 
+        return; 
+    }
+    
+    try {
+        console.log('🔥 Firebase送信開始');
+        await database.ref('scores').push({
+            name: playerName,
+            score: finalGameStats.score,
+            distance: finalGameStats.distance,
+            enemyKills: finalGameStats.enemyKills,
+            speedLevel: finalGameStats.speedLevel,
+            timestamp: Date.now(),
+            date: new Date().toLocaleDateString('ja-JP')
+        });
+        
+        console.log('✅ Firebase送信完了');
+        alert(`🎉 ランキングに登録しました！\n${playerName}さん、お疲れ様でした！`);
+        hideNameInput();
+        showRanking();
+    } catch (error) {
+        console.error('❌ スコア送信エラー:', error);
+        alert('スコアの送信に失敗しました。');
+    }
+}
 
-        function skipSubmit() {
-            hideNameInput();
-            resetGame();
-        }
+function skipSubmit() {
+    console.log('⏭️ スキップ実行');
+    hideNameInput();
+    resetGame();
+}
 
         async function showRanking() {
     console.log('🏆 ランキング画面表示開始');
