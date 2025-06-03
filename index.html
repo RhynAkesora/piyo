@@ -366,77 +366,6 @@
             font-size: 18px;
             display: none;
         }
-
-        /* スマホ用レイアウト調整 */
-        @media (max-width: 600px) {
-            .game-title {
-                font-size: 8vw !important;
-                margin-bottom: 10px !important;
-            }
-            
-            #titleImage {
-                max-width: 70vw !important;
-                max-height: 35vh !important;
-                margin-bottom: 15px !important;
-            }
-            
-            .instruction-text {
-                font-size: 3.5vw !important;
-                margin: 8px 0 !important;
-            }
-            
-            .game-button {
-                font-size: 3.5vw !important;
-                padding: 10px 20px !important;
-                min-width: 40vw !important;
-                max-width: 250px !important;
-            }
-            
-            .version-text {
-                font-size: 2.5vw !important;
-            }
-            
-            .last-update {
-                font-size: 2vw !important;
-            }
-        }
-        #rankingScreen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: none;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            z-index: 30;
-            padding: 5px;
-            box-sizing: border-box;
-        }
-
-        #rankingScreen.hidden {
-            display: none;
-        }
-
-        #nameInputScreen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 25;
-        }
-
-        #nameInputScreen.hidden {
-            display: none;
-        }
     </style>
     
     <!-- Firebase CDN -->
@@ -450,25 +379,22 @@
        <canvas id="gameCanvas" width="1000" height="550"></canvas>
        
        <div id="startScreen" onclick="handleStartScreenClick(event)">
-    <div class="game-title">🐣 ぴよ氏の冒険</div>
-    <img id="titleImage" src="https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg" alt="ぴよ氏の冒険">
-    <div class="instruction-text">どこまで遠くへ行けるかな？</div>
-    
-    <!-- ランキングボタンのみ表示 -->
-    <div style="display: flex; justify-content: center; margin: 20px 0;">
-        <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()" style="min-width: 35vw; max-width: 200px;">🏆 ランキング</button>
-    </div>
-    
-    <!-- バージョン情報を小さく表示 -->
-    <div style="display: flex; align-items: center; justify-content: center; margin: 10px 0;">
-        <span class="version-text" style="color: white !important; font-size: 2vw;">Ver.0.915</span>
-        <div class="last-update" style="margin-left: 10px; font-size: 1.5vw;">LastUpDate 2025/06/04 04:14</div>
-    </div>
-    
-    <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
-        画面をタップまたはスペースキーで開始
-    </div>
-</div>
+           <div class="game-title">🐣 ぴよ氏の冒険</div>
+           <img id="titleImage" src="https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg" alt="ぴよ氏の冒険">
+           <div class="instruction-text">どこまで遠くへ行けるかな？</div>
+           <div class="instruction-text">👈 左移動(22%) + 右移動(45%) + ジャンプ(33%) / 📱 下スワイプで降下</div>
+           <div class="start-button-container">
+               <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
+               <div class="version-info-group">
+                   <span class="version-text" style="color: white !important;">Ver.0.909</span>
+                   <div class="last-update">LastUpDate 2025/06/04 03:10</div>
+               </div>
+           </div>
+           <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
+           <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
+               画面をタップまたはスペースキーで開始
+           </div>
+       </div>
         
         <div id="pauseScreen" class="hidden">
             <div class="game-title">⏸️ ポーズ中</div>
@@ -477,23 +403,17 @@
             <div class="instruction-text">画面をタップまたはスペースキーで再開</div>
         </div>
         
-        <div id="rankingScreen" class="hidden">
-    <div style="color: #ffd700; font-size: 5vw; font-weight: bold; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">🏆 ランキング</div>
+        <div id="rankingScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 30;">
+    <div style="color: #ffd700; font-size: 6vw; font-weight: bold; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">🏆 ランキング</div>
     
-    <div style="display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center;">
-        <button class="game-button" onclick="showRankingByType('score')" id="scoreRankingBtn" style="font-size: 2.2vw; padding: 5px 10px; min-width: auto; max-width: 22vw;">📊 スコア</button>
-        <button class="game-button" onclick="showRankingByType('distance')" id="distanceRankingBtn" style="font-size: 2.2vw; padding: 5px 10px; min-width: auto; max-width: 22vw;">📏 距離</button>
-        <button class="game-button" onclick="showRankingByType('enemyKills')" id="killsRankingBtn" style="font-size: 2.2vw; padding: 5px 10px; min-width: auto; max-width: 22vw;">👹 撃破</button>
-        <button class="game-button" onclick="showRankingByType('speedLevel')" id="levelRankingBtn" style="font-size: 2.2vw; padding: 5px 10px; min-width: auto; max-width: 22vw;">⚡ レベル</button>
+    <!-- ランキング切り替えボタン -->
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="game-button" onclick="showRankingByType('score')" id="scoreRankingBtn" style="font-size: 3vw; padding: 8px 15px; min-width: auto;">📊 スコア</button>
+        <button class="game-button" onclick="showRankingByType('distance')" id="distanceRankingBtn" style="font-size: 3vw; padding: 8px 15px; min-width: auto;">📏 距離</button>
+        <button class="game-button" onclick="showRankingByType('enemyKills')" id="killsRankingBtn" style="font-size: 3vw; padding: 8px 15px; min-width: auto;">👹 撃破</button>
     </div>
     
-    <div id="rankingList" style="background: rgba(0,0,0,0.8); border: 2px solid #ff69b4; border-radius: 10px; padding: 10px; width: 95vw; height: 55vh; overflow-y: auto; overflow-x: hidden; color: white; font-size: 2.8vw; -webkit-overflow-scrolling: touch;">
-        <div style="text-align: center; color: white;">📡 読み込み中...</div>
-    </div>
-    <button class="game-button" onclick="hideRanking()" style="margin-top: 10px; font-size: 3vw; padding: 8px 16px;">🔙 戻る</button>
-</div>
-    
-    <div id="rankingList" style="background: rgba(0,0,0,0.8); border: 2px solid #ff69b4; border-radius: 10px; padding: 15px; max-width: 90vw; height: 50vh; overflow-y: auto; overflow-x: hidden; color: white; font-size: 3vw; -webkit-overflow-scrolling: touch;">
+    <div id="rankingList" style="background: rgba(0,0,0,0.8); border: 2px solid #ff69b4; border-radius: 10px; padding: 20px; max-width: 80vw; max-height: 60vh; overflow-y: auto; color: white; font-size: 3vw; min-height: 200px;">
         <div style="text-align: center; color: white;">📡 読み込み中...</div>
     </div>
     <button class="game-button" onclick="hideRanking()" style="margin-top: 20px; z-index: 31;">🔙 戻る</button>
@@ -640,30 +560,25 @@ async function showRankingByType(type) {
         const titles = {
             score: '📊 スコアランキング',
             distance: '📏 距離ランキング',
-            enemyKills: '👹 撃破数ランキング',
-            speedLevel: '⚡ レベルランキング'
+            enemyKills: '👹 撃破数ランキング'
         };
         
         const units = {
             score: '点',
             distance: 'm',
-            enemyKills: '体',
-            speedLevel: 'レベル'
+            enemyKills: '体'
         };
         
-        let html = `<div style="text-align: center; color: #ffd700; font-weight: bold; margin-bottom: 10px; font-size: 3vw;">${titles[type]}</div>`;
+        let html = `<div style="text-align: center; color: #ffd700; font-weight: bold; margin-bottom: 15px; font-size: 4vw;">${titles[type]}</div>`;
         
         rankings.forEach((entry, index) => {
             const rank = index + 1;
             const rankClass = rank <= 3 ? `rank-${rank}` : '';
             const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏅';
             
-            // 名前を10文字以内に制限
-            const displayName = entry.name.length > 8 ? entry.name.substring(0, 8) + '...' : entry.name;
-            
-            html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.3); color: white; font-size: 2.5vw;">
-                        <span style="color: ${rank <= 3 ? '#ffd700' : 'white'}; flex: 1; text-align: left;">${medal}${rank}. ${displayName}</span>
-                        <span style="color: #ffd700; font-weight: bold; text-align: right; min-width: 25vw;">${entry[type]}${units[type]}</span>
+            html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.3); color: white;">
+                        <span style="color: ${rank <= 3 ? '#ffd700' : 'white'};">${medal}${rank}. ${entry.name}</span>
+                        <span style="color: #ffd700; font-weight: bold;">${entry[type]}${units[type]}</span>
                      </div>`;
         });
         
@@ -678,7 +593,7 @@ async function showRankingByType(type) {
 
 function updateRankingButtons(activeType) {
     // 全ボタンのスタイルをリセット
-    const buttons = ['scoreRankingBtn', 'distanceRankingBtn', 'killsRankingBtn', 'levelRankingBtn'];
+    const buttons = ['scoreRankingBtn', 'distanceRankingBtn', 'killsRankingBtn'];
     buttons.forEach(btnId => {
         const btn = document.getElementById(btnId);
         if (btn) {
@@ -691,8 +606,7 @@ function updateRankingButtons(activeType) {
     const activeButtonIds = {
         score: 'scoreRankingBtn',
         distance: 'distanceRankingBtn',
-        enemyKills: 'killsRankingBtn',
-        speedLevel: 'levelRankingBtn'
+        enemyKills: 'killsRankingBtn'
     };
     
     const activeBtn = document.getElementById(activeButtonIds[activeType]);
@@ -703,22 +617,10 @@ function updateRankingButtons(activeType) {
 }
 
 function hideRanking() {
-    console.log('🔙 hideRanking関数開始');
-    
-    const rankingScreen = document.getElementById('rankingScreen');
-    if (rankingScreen) {
-        rankingScreen.classList.add('hidden');
-        rankingScreen.style.display = 'none';
-        console.log('🔙 ランキング画面を非表示にしました');
-    }
-    
-    // スタート画面を表示
-    const startScreen = document.getElementById('startScreen');
-    if (startScreen) {
-        startScreen.classList.remove('hidden');
-        startScreen.style.display = 'block'; // flexではなくblock
-        console.log('🔙 スタート画面を表示しました');
-    }
+    console.log('🔙 ランキング画面を非表示');
+    document.getElementById('rankingScreen').classList.add('hidden');
+    document.getElementById('rankingScreen').style.display = 'none';
+    document.getElementById('startScreen').classList.remove('hidden');
 }
 
         function showNameInput() {
@@ -2760,9 +2662,9 @@ function hideRanking() {
             console.log('🚀 DOM読み込み完了 - 初期化開始');
             
             // PWA更新システムのセットアップ
-            setupNetworkMonitoring();
-            setupVisibilityChangeDetection();
-            registerServiceWorker();
+            // setupNetworkMonitoring();
+            // setupVisibilityChangeDetection();
+            // registerServiceWorker();
             
             const canvasCheck = document.getElementById('gameCanvas');
             const titleImageCheck = document.getElementById('titleImage');
@@ -2775,7 +2677,7 @@ function hideRanking() {
                     console.log('⚡ 初期化関数を呼び出します...');
                     
                     // 起動時更新チェックを実行
-                    checkForUpdatesOnStartup();
+                    // checkForUpdatesOnStartup();
                     
                     // ゲーム初期化
                     initialize();
