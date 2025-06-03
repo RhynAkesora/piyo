@@ -387,7 +387,7 @@
                <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
                <div class="version-info-group">
                    <span class="version-text" style="color: white !important;">Ver.0.908</span>
-                   <div class="last-update">LastUpDate 2025/06/04 01:59</div>
+                   <div class="last-update">LastUpDate 2025/06/04 02:03</div>
                </div>
            </div>
            <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
@@ -1754,6 +1754,7 @@ function hideRanking() {
         }
         
         async function gameOver() {
+    console.log('🎮 gameOver関数開始');
     gameState.gameStarted = false;
     
     // 最終成績を保存
@@ -1764,14 +1765,21 @@ function hideRanking() {
         speedLevel: gameState.speedLevel
     };
     
+    console.log('📊 最終成績:', finalGameStats);
+    
     // ハイスコア判定
     try {
+        console.log('🏆 ハイスコア判定開始');
         const isHighScore = await checkHighScore(finalGameStats.score);
+        console.log('🏆 ハイスコア判定結果:', isHighScore);
         
         setTimeout(() => {
+            console.log('⏰ setTimeout実行開始');
             if (isHighScore) {
+                console.log('🎉 ハイスコア！名前入力画面表示');
                 showNameInput();
             } else {
+                console.log('📊 通常スコア：アラート表示');
                 alert(`ゲームオーバー\n` +
                       `それはちょっと世間は許してくれませんよ〜🐤\n` +
                       `到達距離: ${finalGameStats.distance}m\n` +
@@ -1783,7 +1791,7 @@ function hideRanking() {
         }, 500);
         
     } catch (error) {
-        console.error('ゲームオーバー処理エラー:', error);
+        console.error('❌ ゲームオーバー処理エラー:', error);
         setTimeout(() => {
             alert(`ゲームオーバー\n` +
                   `それはちょっと世間は許してくれませんよ〜🐤\n` +
