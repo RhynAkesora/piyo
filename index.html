@@ -435,6 +435,29 @@
                 font-size: 16px;
             }
         }
+
+        #rankingList {
+            scrollbar-width: thin;
+            scrollbar-color: #ff69b4 rgba(0,0,0,0.3);
+        }
+
+        #rankingList::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #rankingList::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+
+        #rankingList::-webkit-scrollbar-thumb {
+            background: #ff69b4;
+            border-radius: 4px;
+        }
+
+        #rankingList::-webkit-scrollbar-thumb:hover {
+            background: #ff1493;
+        }
     </style>
     
     <!-- Firebase CDN -->
@@ -453,8 +476,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.916</span>
-                   <div class="last-update">LastUpDate 2025/06/04 05:42</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.917</span>
+                   <div class="last-update">LastUpDate 2025/06/04 05:54</div>
                </div>
            </div>
 <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
@@ -482,7 +505,7 @@
         <button class="game-button" onclick="showRankingByType('speedLevel')" id="levelRankingBtn" style="font-size: 2vw; padding: 4px 8px; min-width: auto; margin: 2px;">⚡ レベル</button>
     </div>
     
-    <div id="rankingList" style="background: rgba(0,0,0,0.8); border: 2px solid #ff69b4; border-radius: 10px; padding: 8px; width: 95vw; height: 50vh; overflow-y: scroll; overflow-x: hidden; color: white; font-size: 2.2vw; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
+    <div id="rankingList" style="background: rgba(0,0,0,0.8); border: 2px solid #ff69b4; border-radius: 10px; padding: 8px; width: 95vw; height: 50vh; overflow-y: auto; overflow-x: hidden; color: white; font-size: 2.2vw; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; position: relative; z-index: 100;">
         <div style="text-align: center; color: white;">📡 読み込み中...</div>
     </div>
     <button class="game-button" onclick="hideRanking()" style="margin-top: 10px; z-index: 31; font-size: 3vw; padding: 8px 16px;">🔙 戻る</button>
@@ -595,6 +618,23 @@ async function showRanking() {
     
     // デフォルトでスコアランキングを表示
     showRankingByType('score');
+    
+    // ランキングリスト専用のタッチイベント処理を追加
+    setTimeout(() => {
+        const rankingList = document.getElementById('rankingList');
+        if (rankingList) {
+            // タッチイベントの伝播を停止
+            rankingList.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+            });
+            rankingList.addEventListener('touchmove', (e) => {
+                e.stopPropagation();
+            });
+            rankingList.addEventListener('touchend', (e) => {
+                e.stopPropagation();
+            });
+        }
+    }, 100);
 }
 
 async function showRankingByType(type) {
