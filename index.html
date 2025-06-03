@@ -386,8 +386,8 @@
            <div class="start-button-container">
                <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.908</span>
-                   <div class="last-update">LastUpDate 2025/06/04 02:40</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.909</span>
+                   <div class="last-update">LastUpDate 2025/06/04 03:10</div>
                </div>
            </div>
            <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
@@ -405,6 +405,14 @@
         
         <div id="rankingScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 30;">
     <div style="color: #ffd700; font-size: 6vw; font-weight: bold; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">🏆 ランキング</div>
+    
+    <!-- ランキング切り替えボタン -->
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="game-button" onclick="showRankingByType('score')" id="scoreRankingBtn" style="font-size: 3vw; padding: 8px 15px; min-width: auto;">📊 スコア</button>
+        <button class="game-button" onclick="showRankingByType('distance')" id="distanceRankingBtn" style="font-size: 3vw; padding: 8px 15px; min-width: auto;">📏 距離</button>
+        <button class="game-button" onclick="showRankingByType('enemyKills')" id="killsRankingBtn" style="font-size: 3vw; padding: 8px 15px; min-width: auto;">👹 撃破</button>
+    </div>
+    
     <div id="rankingList" style="background: rgba(0,0,0,0.8); border: 2px solid #ff69b4; border-radius: 10px; padding: 20px; max-width: 80vw; max-height: 60vh; overflow-y: auto; color: white; font-size: 3vw; min-height: 200px;">
         <div style="text-align: center; color: white;">📡 読み込み中...</div>
     </div>
@@ -505,29 +513,37 @@ function skipSubmit() {
     resetGame();
 }
 
-        async function showRanking() {
+let currentRankingType = 'score'; // デフォルトはスコア
+
+async function showRanking() {
     console.log('🏆 ランキング画面表示開始');
     
-    // 他の画面を隠す
     document.getElementById('startScreen').classList.add('hidden');
     
-    // ランキング画面を表示
     const rankingScreen = document.getElementById('rankingScreen');
     rankingScreen.classList.remove('hidden');
     rankingScreen.style.display = 'flex';
     
+    // デフォルトでスコアランキングを表示
+    showRankingByType('score');
+}
+
+async function showRankingByType(type) {
+    console.log(`🏆 ${type}ランキング表示開始`);
+    currentRankingType = type;
+    
+    // ボタンのスタイルを更新
+    updateRankingButtons(type);
+    
     const rankingList = document.getElementById('rankingList');
     rankingList.innerHTML = '<div style="text-align: center; color: white;">📡 読み込み中...</div>';
     
-    console.log('📡 Firebase接続開始');
-    
     try {
-        // Firebaseが初期化されているかチェック
         if (typeof firebase === 'undefined') {
             throw new Error('Firebase未初期化');
         }
         
-        const snapshot = await database.ref('scores').orderByChild('score').limitToLast(20).once('value');
+        const snapshot = await database.ref('scores').orderByChild(type).limitToLast(20).once('value');
         const data = snapshot.val();
         
         console.log('📊 取得データ:', data);
@@ -537,16 +553,32 @@ function skipSubmit() {
             return;
         }
         
-        const rankings = Object.values(data).sort((a, b) => b.score - a.score);
+        const rankings = Object.values(data).sort((a, b) => b[type] - a[type]);
         console.log('🏆 ソート済みランキング:', rankings);
         
-        let html = '';
+        // ランキングタイトルを表示
+        const titles = {
+            score: '📊 スコアランキング',
+            distance: '📏 距離ランキング',
+            enemyKills: '👹 撃破数ランキング'
+        };
+        
+        const units = {
+            score: '点',
+            distance: 'm',
+            enemyKills: '体'
+        };
+        
+        let html = `<div style="text-align: center; color: #ffd700; font-weight: bold; margin-bottom: 15px; font-size: 4vw;">${titles[type]}</div>`;
+        
         rankings.forEach((entry, index) => {
             const rank = index + 1;
+            const rankClass = rank <= 3 ? `rank-${rank}` : '';
             const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏅';
-            html += `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.3); color: white;">
-                        <span>${medal}${rank}. ${entry.name}</span>
-                        <span style="color: #ffd700; font-weight: bold;">${entry.score}点</span>
+            
+            html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.3); color: white;">
+                        <span style="color: ${rank <= 3 ? '#ffd700' : 'white'};">${medal}${rank}. ${entry.name}</span>
+                        <span style="color: #ffd700; font-weight: bold;">${entry[type]}${units[type]}</span>
                      </div>`;
         });
         
@@ -556,6 +588,31 @@ function skipSubmit() {
     } catch (error) {
         console.error('❌ ランキング読み込みエラー:', error);
         rankingList.innerHTML = '<div style="text-align: center; color: white;">❌ 読み込みに失敗しました<br>エラー: ' + error.message + '</div>';
+    }
+}
+
+function updateRankingButtons(activeType) {
+    // 全ボタンのスタイルをリセット
+    const buttons = ['scoreRankingBtn', 'distanceRankingBtn', 'killsRankingBtn'];
+    buttons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            btn.style.background = 'linear-gradient(135deg, #ff69b4, #ff1493)';
+            btn.style.opacity = '0.7';
+        }
+    });
+    
+    // アクティブボタンを強調
+    const activeButtonIds = {
+        score: 'scoreRankingBtn',
+        distance: 'distanceRankingBtn',
+        enemyKills: 'killsRankingBtn'
+    };
+    
+    const activeBtn = document.getElementById(activeButtonIds[activeType]);
+    if (activeBtn) {
+        activeBtn.style.background = 'linear-gradient(135deg, #ff1493, #dc143c)';
+        activeBtn.style.opacity = '1';
     }
 }
 
