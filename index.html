@@ -730,9 +730,7 @@ function updateRankingButtons(activeType) {
 
 function hideRanking() {
     console.log('🔙 ランキング画面を非表示');
-    document.getElementById('rankingScreen').classList.add('hidden');
-    document.getElementById('rankingScreen').style.display = 'none';
-    document.getElementById('startScreen').classList.remove('hidden');
+    showStartScreen(); // 新しい関数を使用
 }
 
         function showNameInput() {
@@ -766,20 +764,7 @@ function hideRanking() {
 
         function hideNameInput() {
     console.log('🔙 hideNameInput関数開始');
-    
-    const nameInputScreen = document.getElementById('nameInputScreen');
-    if (nameInputScreen) {
-        nameInputScreen.classList.add('hidden');
-        nameInputScreen.style.display = 'none';
-        console.log('🔙 名前入力画面を非表示にしました');
-    }
-    
-    // タイトル画面を表示
-    const startScreen = document.getElementById('startScreen');
-    if (startScreen) {
-        startScreen.classList.remove('hidden');
-        console.log('🔙 タイトル画面を表示しました');
-    }
+    showStartScreen(); // 新しい関数を使用
 }
 
         async function checkHighScore(score) {
@@ -2117,13 +2102,15 @@ function hideRanking() {
             
             initTerrain();
             
-            document.getElementById('startScreen').classList.remove('hidden');
-            document.getElementById('pauseScreen').classList.add('hidden');
-            document.getElementById('pauseButton').textContent = '⏸️';
-            
-            // リセット時に更新間隔を調整
-            startSmartUpdateCheck();
-        }
+        document.getElementById('startScreen').classList.remove('hidden');
+        document.getElementById('pauseScreen').classList.add('hidden');
+        document.getElementById('pauseButton').textContent = '⏸️';
+
+        // リセット時に更新間隔を調整
+        startSmartUpdateCheck();
+
+        // タイトル画面表示確認
+        console.log('🔄 リセット完了：タイトル画面表示確認');
         
         function render() {
             const gradient = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
@@ -2851,6 +2838,31 @@ function hideRanking() {
                 pauseGame();
             }
         });
+        // タイトル画面表示時の確実なリセット処理
+        function showStartScreen() {
+            console.log('🏠 タイトル画面表示：確実にリセット実行');
+            
+            // ゲームを完全にリセット
+            resetGame();
+            
+            // タイトル画面を表示
+            const startScreen = document.getElementById('startScreen');
+            if (startScreen) {
+                startScreen.classList.remove('hidden');
+                console.log('🏠 タイトル画面表示完了');
+            }
+            
+            // 他の画面を全て非表示
+            document.getElementById('pauseScreen').classList.add('hidden');
+            document.getElementById('rankingScreen').classList.add('hidden');
+            document.getElementById('rankingScreen').style.display = 'none';
+            const nameInputScreen = document.getElementById('nameInputScreen');
+            if (nameInputScreen) {
+                nameInputScreen.classList.add('hidden');
+                nameInputScreen.style.display = 'none';
+            }
+        }
+
     </script>
 </body>
 </html>
