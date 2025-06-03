@@ -367,33 +367,58 @@
             display: none;
         }
     </style>
+    
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-database-compat.js"></script>
+    
 </head>
 <body>
+<body>
     <div id="gameContainer">
-        <canvas id="gameCanvas" width="1000" height="550"></canvas>
-        
-        <div id="startScreen" onclick="handleStartScreenClick(event)">
-            <div class="game-title">🐣 ぴよ氏の冒険</div>
-            <img id="titleImage" src="https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg" alt="ぴよ氏の冒険">
-            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
-            <div class="instruction-text">👈 左移動(22%) + 右移動(45%) + ジャンプ(33%) / 📱 下スワイプで降下</div>
-            <div class="start-button-container">
-                <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
-                <div class="version-info-group">
-                    <span class="version-text" style="color: white !important;">Ver.0.906</span>
-                    <div class="last-update">LastUpDate 2025/06/03 04:52</div>
-                </div>
-            </div>
-            <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
-                画面をタップまたはスペースキーで開始
-            </div>
-        </div>
+       <canvas id="gameCanvas" width="1000" height="550"></canvas>
+       
+       <div id="startScreen" onclick="handleStartScreenClick(event)">
+           <div class="game-title">🐣 ぴよ氏の冒険</div>
+           <img id="titleImage" src="https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg" alt="ぴよ氏の冒険">
+           <div class="instruction-text">どこまで遠くへ行けるかな？</div>
+           <div class="instruction-text">👈 左移動(22%) + 右移動(45%) + ジャンプ(33%) / 📱 下スワイプで降下</div>
+           <div class="start-button-container">
+               <button id="startButton" class="game-button" onclick="startGame()">🌟 冒険を始める</button>
+               <div class="version-info-group">
+                   <span class="version-text" style="color: white !important;">Ver.0.906</span>
+                   <div class="last-update">LastUpDate 2025/06/03 04:52</div>
+               </div>
+           </div>
+           <button id="rankingButton" class="game-button" onclick="event.stopPropagation(); showRanking()">🏆 ランキング</button>
+           <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
+               画面をタップまたはスペースキーで開始
+           </div>
+       </div>
         
         <div id="pauseScreen" class="hidden">
             <div class="game-title">⏸️ ポーズ中</div>
             <button id="resumeButton" class="game-button" onclick="pauseGame()">▶️ 再開</button>
             <button id="restartButton" class="game-button" onclick="resetGame()">🔄 リスタート</button>
             <div class="instruction-text">画面をタップまたはスペースキーで再開</div>
+        </div>
+        
+        <div id="rankingScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 25; padding: 20px; overflow-y: auto;">
+            <div style="color: #ffd700; font-size: 6vw; font-weight: bold; margin-bottom: 20px;">🏆 ランキング</div>
+            <div id="rankingList" style="background: rgba(0,0,0,0.9); border-radius: 10px; padding: 20px; max-width: 80vw; max-height: 60vh; overflow-y: auto; color: white; font-size: 3vw;">
+                <div style="text-align: center;">📡 読み込み中...</div>
+            </div>
+            <button class="game-button" onclick="hideRanking()" style="margin-top: 20px;">🔙 戻る</button>
+        </div>
+        <div id="nameInputScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 25;">
+            <div style="color: #ffd700; font-size: 6vw; font-weight: bold; margin-bottom: 20px;">🎉 ハイスコア！</div>
+            <div style="color: white; font-size: 4vw; margin-bottom: 10px;">ランキングに記録します</div>
+            <div id="scoreToSubmit" style="color: white; font-size: 3vw; margin-bottom: 20px;"></div>
+            <input type="text" id="playerNameInput" placeholder="お名前を入力" maxlength="10" style="padding: 10px; font-size: 4vw; border-radius: 5px; border: none; margin-bottom: 20px; text-align: center;">
+            <div>
+                <button class="game-button" onclick="submitScore()">📝 登録</button>
+                <button class="game-button" onclick="skipSubmit()">⏭️ スキップ</button>
+            </div>
         </div>
         
         <div id="leftArea" class="touch-area">
@@ -423,7 +448,114 @@
         🔄 新しいバージョンを取得中...
     </div>
 
-    <script>
+<script>
+        <!-- ここにFirebase設定とランキング機能を追加 -->
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0k2m0OcKxA_K10j2ZPmR2pMK5MKZgHAY",
+            authDomain: "piyo-adventure-ranking.firebaseapp.com",
+            databaseURL: "https://piyo-adventure-ranking-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "piyo-adventure-ranking",
+            storageBucket: "piyo-adventure-ranking.firebasestorage.app",
+            messagingSenderId: "508462208211",
+            appId: "1:508462208211:web:7c52eb1044cfba4c33b026"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        let finalGameStats = null;
+
+        // ランキング機能
+        async function submitScore() {
+            const playerName = document.getElementById('playerNameInput').value.trim();
+            if (!playerName) { alert('お名前を入力してください！'); return; }
+            
+            try {
+                await database.ref('scores').push({
+                    name: playerName,
+                    score: finalGameStats.score,
+                    distance: finalGameStats.distance,
+                    enemyKills: finalGameStats.enemyKills,
+                    speedLevel: finalGameStats.speedLevel,
+                    timestamp: Date.now(),
+                    date: new Date().toLocaleDateString('ja-JP')
+                });
+                
+                alert(`🎉 ランキングに登録しました！\n${playerName}さん、お疲れ様でした！`);
+                hideNameInput();
+                showRanking();
+            } catch (error) {
+                alert('スコアの送信に失敗しました。');
+            }
+        }
+
+        function skipSubmit() {
+            hideNameInput();
+            resetGame();
+        }
+
+        async function showRanking() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('rankingScreen').classList.remove('hidden');
+            
+            const rankingList = document.getElementById('rankingList');
+            rankingList.innerHTML = '<div style="text-align: center;">📡 読み込み中...</div>';
+            
+            try {
+                const snapshot = await database.ref('scores').orderByChild('score').limitToLast(20).once('value');
+                const data = snapshot.val();
+                
+                if (!data) {
+                    rankingList.innerHTML = '<div style="text-align: center;">📊 まだランキングデータがありません</div>';
+                    return;
+                }
+                
+                const rankings = Object.values(data).sort((a, b) => b.score - a.score);
+                
+                let html = '';
+                rankings.forEach((entry, index) => {
+                    const rank = index + 1;
+                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏅';
+                    html += `<div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.2);">
+                                <span>${medal}${rank}. ${entry.name}</span>
+                                <span style="color: #ffd700;">${entry.score}点</span>
+                             </div>`;
+                });
+                
+                rankingList.innerHTML = html;
+            } catch (error) {
+                rankingList.innerHTML = '<div style="text-align: center;">❌ 読み込みに失敗しました</div>';
+            }
+        }
+
+        function hideRanking() {
+            document.getElementById('rankingScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+
+        function showNameInput() {
+            document.getElementById('nameInputScreen').classList.remove('hidden');
+            document.getElementById('scoreToSubmit').textContent = `スコア: ${finalGameStats.score}点 | 距離: ${finalGameStats.distance}m`;
+            document.getElementById('playerNameInput').value = '';
+        }
+
+        function hideNameInput() {
+            document.getElementById('nameInputScreen').classList.add('hidden');
+        }
+
+        async function checkHighScore(score) {
+            try {
+                const snapshot = await database.ref('scores').orderByChild('score').limitToLast(20).once('value');
+                const data = snapshot.val();
+                if (!data) return true;
+                
+                const rankings = Object.values(data).sort((a, b) => b.score - a.score);
+                return rankings.length < 20 || score > rankings[rankings.length - 1].score;
+            } catch (error) {
+                return true;
+            }
+        }
+        
         console.log('=== ぴよ氏の冒険 スクリプト開始 (改善版PWA) ===');
         
         const canvas = document.getElementById('gameCanvas');
@@ -1596,18 +1728,46 @@
             gameState.camera.x = Math.max(100, gameState.camera.x - 200);
         }
         
-        function gameOver() {
+        async function gameOver() {
             gameState.gameStarted = false;
             
-            setTimeout(() => {
-                alert(`ゲームオーバー\n` +
-                      `それはちょっと世間は許してくれませんよ〜🐤\n` +
-                      `到達距離: ${gameState.distance}m\n` +
-                      `最終スコア: ${gameState.score}点\n` +
-                      `敵撃破数: ${gameState.enemyKills}体\n` +
-                      `到達レベル: ${gameState.speedLevel}`);
-                resetGame();
-            }, 500);
+            // 最終成績を保存
+            finalGameStats = {
+                score: gameState.score,
+                distance: gameState.distance,
+                enemyKills: gameState.enemyKills,
+                speedLevel: gameState.speedLevel
+            };
+            
+            // ハイスコア判定
+            try {
+                const isHighScore = await checkHighScore(finalGameStats.score);
+                
+                setTimeout(() => {
+                    if (isHighScore) {
+                        showNameInput();
+                    } else {
+                        alert(`ゲームオーバー\n` +
+                              `それはちょっと世間は許してくれませんよ〜🐤\n` +
+                              `到達距離: ${finalGameStats.distance}m\n` +
+                              `最終スコア: ${finalGameStats.score}点\n` +
+                              `敵撃破数: ${finalGameStats.enemyKills}体\n` +
+                              `到達レベル: ${finalGameStats.speedLevel}`);
+                        resetGame();
+                    }
+                }, 500);
+                
+            } catch (error) {
+                setTimeout(() => {
+                    alert(`ゲームオーバー\n` +
+                          `それはちょっと世間は許してくれませんよ〜🐤\n` +
+                          `到達距離: ${finalGameStats.distance}m\n` +
+                          `最終スコア: ${finalGameStats.score}点\n` +
+                          `敵撃破数: ${finalGameStats.enemyKills}体\n` +
+                          `到達レベル: ${finalGameStats.speedLevel}`);
+                    resetGame();
+                }, 500);
+            }
         }
         
         function pauseGame() {
