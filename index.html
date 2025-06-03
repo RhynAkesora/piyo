@@ -565,6 +565,13 @@
         const database = firebase.database();
         let finalGameStats = null;
 
+        // handleStartScreenClick関数を追加
+function handleStartScreenClick(event) {
+    if (event.target.id === 'startButton') return;
+    if (event.target.id === 'rankingButton') return;
+    startGame();
+}
+    
         // ランキング機能
         async function submitScore() {
     console.log('📝 submitScore関数開始');
