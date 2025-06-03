@@ -476,8 +476,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.920</span>
-                   <div class="last-update">LastUpDate 2025/06/04 06:29</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.921</span>
+                   <div class="last-update">LastUpDate 2025/06/04 06:50</div>
                </div>
            </div>
 <button id="rankingButton" class="game-button" onclick="showRanking(); event.stopPropagation();">🏆 ランキング</button>
@@ -1453,31 +1453,31 @@ function hideRanking() {
                     bodyColor = '#ffff00';
                     accentColor = '#ffff99';
             }
+    
+    const currentY = enemy.y + bounce;
+    
+    ctx.fillStyle = bodyColor;
+    ctx.fillRect(enemy.x + 6, currentY + 12, enemy.width - 12, enemy.height - 18);
+    ctx.fillRect(enemy.x + 4, currentY + 8, enemy.width - 8, enemy.height - 14);
+    ctx.fillRect(enemy.x + 8, currentY + 4, enemy.width - 16, 12);
+    
+    ctx.fillStyle = accentColor;
+    ctx.fillRect(enemy.x + 8, currentY + 10, enemy.width - 16, enemy.height - 20);
+    
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(enemy.x + 12, currentY + 8, 4, 4);
+    ctx.fillRect(enemy.x + enemy.width - 16, currentY + 8, 4, 4);
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(enemy.x + 13, currentY + 9, 2, 2);
+    ctx.fillRect(enemy.x + enemy.width - 15, currentY + 9, 2, 2);
+    
+    ctx.fillStyle = '#ffa500';
+    ctx.fillRect(enemy.x + enemy.width/2 - 2, currentY + 14, 4, 2);
+    
+    enemy.animFrame++;
+}
             
-            const currentY = enemy.y + bounce;
-            
-            ctx.fillStyle = bodyColor;
-            ctx.fillRect(enemy.x + 6, currentY + 12, enemy.width - 12, enemy.height - 18);
-            ctx.fillRect(enemy.x + 4, currentY + 8, enemy.width - 8, enemy.height - 14);
-            ctx.fillRect(enemy.x + 8, currentY + 4, enemy.width - 16, 12);
-            
-            ctx.fillStyle = accentColor;
-            ctx.fillRect(enemy.x + 8, currentY + 10, enemy.width - 16, enemy.height - 20);
-            
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(enemy.x + 12, currentY + 8, 4, 4);
-            ctx.fillRect(enemy.x + enemy.width - 16, currentY + 8, 4, 4);
-            
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(enemy.x + 13, currentY + 9, 2, 2);
-            ctx.fillRect(enemy.x + enemy.width - 15, currentY + 9, 2, 2);
-            
-            ctx.fillStyle = '#ffa500';
-            ctx.fillRect(enemy.x + enemy.width/2 - 2, currentY + 14, 4, 2);
-            
-            enemy.animFrame++;
-        }
-        
         function drawFlyingEnemy(enemy) {
             enemy.y += Math.sin(gameState.time * 0.05 + enemy.waveOffset) * 0.8;
             
