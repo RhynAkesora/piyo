@@ -476,15 +476,18 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.923</span>
-                   <div class="last-update">LastUpDate 2025/06/07 02:51</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.924</span>
+                   <div class="last-update">LastUpDate 2025/06/07 03:39</div>
                </div>
            </div>
-<button id="rankingButton" class="game-button" onclick="showRanking(); event.stopPropagation();">🏆 ランキング</button>
-<div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
-    画面をタップまたはスペースキーで開始
-</div>
-<!-- この行を完全に削除 -->
+        <div style="position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 25;">
+            <button class="game-button" onclick="toggleSound(); event.stopPropagation();" id="soundButton" style="font-size: 2.5vw; padding: 8px 12px; min-width: auto; margin: 0;">🔊 音ON</button>
+        </div>
+        <button id="rankingButton" class="game-button" onclick="showRanking(); event.stopPropagation();">🏆 ランキング</button>
+        <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
+            画面をタップまたはスペースキーで開始
+        </div>
+        <!-- この行を完全に削除 -->
        </div>
         
         <div id="pauseScreen" class="hidden">
@@ -564,13 +567,90 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         let finalGameStats = null;
+            // ========== 効果音管理システム ==========
+        class SoundManager {
+            constructor() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.enabled = true;
+                    console.log('🔊 SoundManager初期化完了');
+                } catch (error) {
+                    console.error('❌ AudioContext初期化失敗:', error);
+                    this.audioContext = null;
+                    this.enabled = false;
+                }
+            }
+    
+            // 基本的なビープ音生成
+            createBeep(frequency, duration, type = 'sine', volume = 0.3) {
+                if (!this.enabled || !this.audioContext) return;
+        
+                try {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+            
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+            
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = type;
+            
+                    gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+            
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + duration);
+                } catch (error) {
+                    console.error('❌ 効果音再生エラー:', error);
+                }
+            }
+    
+            // ジャンプ音（ピロリン）
+            playJump() {
+                this.createBeep(440, 0.15, 'square', 0.2);
+            }
+    
+            // 敵撃破音（バシュー）
+            playKill() {
+                this.createBeep(660, 0.2, 'sawtooth', 0.25);
+            }
+    
+            // アイテム取得音（キラキラ）
+            playItem() {
+                this.createBeep(523, 0.1, 'sine', 0.2); // ド
+                setTimeout(() => this.createBeep(659, 0.1, 'sine', 0.2), 50); // ミ
+                setTimeout(() => this.createBeep(784, 0.15, 'sine', 0.2), 100); // ソ
+            }
+    
+            // コイン音（チャリン）
+            playCoin() {
+                this.createBeep(1047, 0.12, 'sine', 0.15);
+            }
+    
+            // 音のON/OFF切り替え
+            toggle() {
+                this.enabled = !this.enabled;
+                console.log(`🔊 効果音: ${this.enabled ? 'ON' : 'OFF'}`);
+            }
+    
+            // 音を有効にする（ユーザー操作後に呼び出す）
+            enable() {
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+                this.enabled = true;
+            }
+        }
+
+        // グローバル変数
+        let soundManager;
 
         // handleStartScreenClick関数を追加
-function handleStartScreenClick(event) {
-    if (event.target.id === 'startButton') return;
-    if (event.target.id === 'rankingButton') return;
-    startGame();
-}
+        function handleStartScreenClick(event) {
+            if (event.target.id === 'startButton') return;
+            if (event.target.id === 'rankingButton') return;
+            startGame();
+        }
     
         // ランキング機能
         async function submitScore() {
@@ -606,34 +686,34 @@ function handleStartScreenClick(event) {
     }
 }
 
-function skipSubmit() {
-    console.log('⏭️ スキップ実行');
-    hideNameInput();
-    resetGame();
-}
+        function skipSubmit() {
+            console.log('⏭️ スキップ実行');
+            hideNameInput();
+            resetGame();
+        }
 
-let currentRankingType = 'score'; // デフォルトはスコア
+        let currentRankingType = 'score'; // デフォルトはスコア
 
-async function showRanking() {
-    console.log('🏆 ランキング画面表示開始');
+        async function showRanking() {
+            console.log('🏆 ランキング画面表示開始');
     
-    document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.add('hidden');
     
-    const rankingScreen = document.getElementById('rankingScreen');
-    rankingScreen.classList.remove('hidden');
-    rankingScreen.style.display = 'flex';
+            const rankingScreen = document.getElementById('rankingScreen');
+            rankingScreen.classList.remove('hidden');
+            rankingScreen.style.display = 'flex';
     
-    // デフォルトでスコアランキングを表示
-    showRankingByType('score');
+            // デフォルトでスコアランキングを表示
+            showRankingByType('score');
     
-    // ランキングリスト専用のタッチイベント処理を追加
-    setTimeout(() => {
-        const rankingList = document.getElementById('rankingList');
-        if (rankingList) {
+            // ランキングリスト専用のタッチイベント処理を追加
+            setTimeout(() => {
+                const rankingList = document.getElementById('rankingList');
+                if (rankingList) {
             // タッチイベントの伝播を停止
             rankingList.addEventListener('touchstart', (e) => {
                 e.stopPropagation();
-            });
+                });
             rankingList.addEventListener('touchmove', (e) => {
                 e.stopPropagation();
             });
@@ -644,19 +724,19 @@ async function showRanking() {
     }, 100);
 }
 
-async function showRankingByType(type) {
-    console.log(`🏆 ${type}ランキング表示開始`);
-    currentRankingType = type;
+        async function showRankingByType(type) {
+            console.log(`🏆 ${type}ランキング表示開始`);
+            currentRankingType = type;
     
-    // ボタンのスタイルを更新
-    updateRankingButtons(type);
+            // ボタンのスタイルを更新
+            updateRankingButtons(type);
     
-    const rankingList = document.getElementById('rankingList');
-    rankingList.innerHTML = '<div style="text-align: center; color: white;">📡 読み込み中...</div>';
+            const rankingList = document.getElementById('rankingList');
+            rankingList.innerHTML = '<div style="text-align: center; color: white;">📡 読み込み中...</div>';
     
-    try {
-        if (typeof firebase === 'undefined') {
-            throw new Error('Firebase未初期化');
+            try {
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase未初期化');
         }
         
         const snapshot = await database.ref('scores').orderByChild(type).limitToLast(20).once('value');
@@ -709,35 +789,53 @@ async function showRankingByType(type) {
     }
 }
 
-function updateRankingButtons(activeType) {
-    // 全ボタンのスタイルをリセット
-    const buttons = ['scoreRankingBtn', 'distanceRankingBtn', 'killsRankingBtn', 'levelRankingBtn'];
-    buttons.forEach(btnId => {
-        const btn = document.getElementById(btnId);
-        if (btn) {
-            btn.style.background = 'linear-gradient(135deg, #ff69b4, #ff1493)';
-            btn.style.opacity = '0.7';
+        function updateRankingButtons(activeType) {
+            // 全ボタンのスタイルをリセット
+            const buttons = ['scoreRankingBtn', 'distanceRankingBtn', 'killsRankingBtn', 'levelRankingBtn'];
+            buttons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.style.background = 'linear-gradient(135deg, #ff69b4, #ff1493)';
+                    btn.style.opacity = '0.7';
+                }
+            });
+    
+            // アクティブボタンを強調
+            const activeButtonIds = {
+                score: 'scoreRankingBtn',
+                distance: 'distanceRankingBtn',
+                enemyKills: 'killsRankingBtn',
+                speedLevel: 'levelRankingBtn'
+            };
+    
+            const activeBtn = document.getElementById(activeButtonIds[activeType]);
+            if (activeBtn) {
+                activeBtn.style.background = 'linear-gradient(135deg, #ff1493, #dc143c)';
+                activeBtn.style.opacity = '1';
+            }
         }
-    });
-    
-    // アクティブボタンを強調
-    const activeButtonIds = {
-        score: 'scoreRankingBtn',
-        distance: 'distanceRankingBtn',
-        enemyKills: 'killsRankingBtn',
-        speedLevel: 'levelRankingBtn'
-    };
-    
-    const activeBtn = document.getElementById(activeButtonIds[activeType]);
-    if (activeBtn) {
-        activeBtn.style.background = 'linear-gradient(135deg, #ff1493, #dc143c)';
-        activeBtn.style.opacity = '1';
-    }
-}
 
-function hideRanking() {
-    console.log('🔙 ランキング画面を非表示');
-    showStartScreen(); // 新しい関数を使用
+        function hideRanking() {
+            console.log('🔙 ランキング画面を非表示');
+            showStartScreen(); // 新しい関数を使用
+        }
+
+        // 音のON/OFF切り替え関数
+         function toggleSound() {
+             if (soundManager) {
+                soundManager.toggle();
+        
+        // ボタンの表示を更新
+        const soundButton = document.getElementById('soundButton');
+        if (soundButton) {
+            soundButton.textContent = soundManager.enabled ? '🔊 音ON' : '🔇 音OFF';
+        }
+        
+        // AudioContextを有効化（ブラウザの制限対応）
+        if (soundManager.enabled && soundManager.audioContext && soundManager.audioContext.state === 'suspended') {
+            soundManager.audioContext.resume();
+        }
+    }
 }
 
         function showNameInput() {
@@ -1697,6 +1795,7 @@ function hideRanking() {
                 player.velY = jumpForce;
                 player.onGround = false;
                 gameState.input.jumpPressed = true;
+                soundManager.playJump(); // 🔊 ジャンプ効果音
             }
             
             if (!gameState.input.jump) {
@@ -1811,6 +1910,7 @@ function hideRanking() {
                         enemies.splice(i, 1); // 敵を配列から削除
                         gameState.score += 200;
                         gameState.enemyKills++; // 撃破数をカウント
+                        soundManager.playKill(); // 🔊 撃破効果音
                         continue;
                     }
                     
@@ -1872,6 +1972,7 @@ function hideRanking() {
                         gameState.score += 300;
                         gameState.enemyKills++; // 撃破数をカウント
                         console.log(`👟 空中敵を踏んで撃破！タイプ: ${enemy.type}`);
+                        soundManager.playKill(); // 🔊 撃破効果音
                     } else {
                         // 横から衝突した場合 - ダメージ
                         flyingEnemies.splice(i, 1);
@@ -1903,6 +2004,7 @@ function hideRanking() {
                 if (!coin.collected && checkCollision(player, coin, 'コインとの')) {
                     coin.collected = true;
                     gameState.score += 100;
+                    soundManager.playCoin(); // 🔊 コイン効果音
                 }
             }
         }
@@ -1912,6 +2014,7 @@ function hideRanking() {
                 if (!powerUp.collected && checkCollision(player, powerUp, 'パワーアップとの')) {
                     powerUp.collected = true;
                     gameState.score += 500;
+                    soundManager.playItem(); // 🔊 アイテム効果音
                     
                     if (powerUp.type === 'heart') {
                         // ライフアップアイテム
@@ -2668,6 +2771,9 @@ function hideRanking() {
         
         function initialize() {
             console.log('🎮 ゲーム初期化開始...');
+
+            // 効果音システム初期化
+            soundManager = new SoundManager();
             
             try {
                 // タイトル画像をランダムに選択（全29枚）
