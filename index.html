@@ -476,8 +476,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.925</span>
-                   <div class="last-update">LastUpDate 2025/06/07 03:53</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.926</span>
+                   <div class="last-update">LastUpDate 2025/06/07 04:00</div>
                </div>
            </div>
         <div style="position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 25;">
@@ -604,13 +604,35 @@
                     console.error('❌ 効果音再生エラー:', error);
                 }
             }
+    // ジャンプ音（びよーん）
+playJump() {
+    if (!this.enabled || !this.audioContext) return;
     
-            // ジャンプ音（マリオ風）
-            playJump() {
-            // マリオのジャンプ音を再現（square波で短く上昇）
-            this.createBeep(659, 0.1, 'square', 0.3);      // E（ミ）
-            setTimeout(() => this.createBeep(1318, 0.15, 'square', 0.25), 50);  // E（高いミ）
-        }
+    try {
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        // 音程をスムーズに上昇させる（びよーん効果）
+        oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);           // 低音から開始
+        oscillator.frequency.exponentialRampToValueAtTime(400, this.audioContext.currentTime + 0.1);  // 中音
+        oscillator.frequency.exponentialRampToValueAtTime(600, this.audioContext.currentTime + 0.25); // 高音へ
+        
+        oscillator.type = 'sine';
+        
+        // 音量も調整
+        gainNode.gain.setValueAtTime(0.25, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+        
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + 0.3);
+    } catch (error) {
+        console.error('❌ ジャンプ音再生エラー:', error);
+    }
+}
+            
     
             // 敵撃破音（バシュー）
             playKill() {
