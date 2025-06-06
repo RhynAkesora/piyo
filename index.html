@@ -477,7 +477,7 @@
            <div class="start-button-container">
                <div class="version-info-group">
                    <span class="version-text" style="color: white !important;">Ver.0.932</span>
-                   <div class="last-update">LastUpDate 2025/06/07 04:30</div>
+                   <div class="last-update">LastUpDate 2025/06/07 04:35</div>
                </div>
            </div>
         <div style="position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 25;">
@@ -709,6 +709,45 @@ playCoin() {
     } catch (error) {
         console.error('❌ コイン音再生エラー:', error);
     }
+
+    // ダメージ音（痛い感じ）
+playDamage() {
+    if (!this.enabled || !this.audioContext) return;
+    
+    try {
+        // 不協和音で「痛い」感じを表現
+        const duration = 0.4;
+        
+        // 低いブザー音
+        const osc1 = this.audioContext.createOscillator();
+        const gain1 = this.audioContext.createGain();
+        osc1.connect(gain1);
+        gain1.connect(this.audioContext.destination);
+        osc1.frequency.value = 150; // 低音
+        osc1.type = 'sawtooth';
+        gain1.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+        
+        // 不協和音を重ねる
+        const osc2 = this.audioContext.createOscillator();
+        const gain2 = this.audioContext.createGain();
+        osc2.connect(gain2);
+        gain2.connect(this.audioContext.destination);
+        osc2.frequency.value = 170; // 微妙にずらした音
+        osc2.type = 'sawtooth';
+        gain2.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+        
+        const now = this.audioContext.currentTime;
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + duration);
+        osc2.stop(now + duration);
+        
+    } catch (error) {
+        console.error('❌ ダメージ音再生エラー:', error);
+    }
+}
 }
     
             // 音のON/OFF切り替え
@@ -2072,6 +2111,7 @@ playCoin() {
     if (gameState.isInvincible) return;
     
     gameState.lives--;
+    soundManager.playDamage(); // 🔊 ダメージ効果音
     gameState.isInvincible = true;
     gameState.invincibleTimer = INVINCIBLE_TIME;
     resetPlayerPosition();
