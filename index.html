@@ -476,8 +476,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.921</span>
-                   <div class="last-update">LastUpDate 2025/06/04 06:50</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.922</span>
+                   <div class="last-update">LastUpDate 2025/06/07 01:00</div>
                </div>
            </div>
 <button id="rankingButton" class="game-button" onclick="showRanking(); event.stopPropagation();">🏆 ランキング</button>
@@ -774,18 +774,27 @@ function hideRanking() {
     showStartScreen(); // 新しい関数を使用
 }
 
-        async function checkHighScore(score) {
+        async function checkHighScore(gameStats) {
             try {
-                const snapshot = await database.ref('scores').orderByChild('score').limitToLast(20).once('value');
-                const data = snapshot.val();
-                if (!data) return true;
-                
-                const rankings = Object.values(data).sort((a, b) => b.score - a.score);
-                return rankings.length < 20 || score > rankings[rankings.length - 1].score;
-            } catch (error) {
-                return true;
-            }
-        }
+                const categories = ['score', 'distance', 'enemyKills', 'speedLevel'];
+        
+                for (let category of categories) {
+                    const snapshot = await database.ref('scores').orderByChild(category).limitToLast(20).once('value');
+                    const data = snapshot.val();
+            
+                    if (!data) return true; // データなしなら記録
+            
+                    const rankings = Object.values(data).sort((a, b) => b[category] - a[category]);
+                    if (rankings.length < 20 || gameStats[category] > rankings[rankings.length - 1][category]) {
+                        return true; // どれか1つでも20位以内なら記録
+                    }
+                }
+        
+        return false;
+    } catch (error) {
+        return true;
+    }
+}
         
         console.log('=== ぴよ氏の冒険 スクリプト開始 (改善版PWA) ===');
         
