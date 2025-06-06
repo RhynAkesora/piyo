@@ -475,8 +475,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.937</span>
-                   <div class="last-update">LastUpDate 2025/06/07 05:20</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.938</span>
+                   <div class="last-update">LastUpDate 2025/06/07 05:28</div>
                </div>
            </div>
         <div style="position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 25;">
@@ -663,12 +663,61 @@ playKill() {
     }
 }
     
-            // アイテム取得音（キラキラ）
-            playItem() {
-                this.createBeep(523, 0.1, 'sine', 0.2); // ド
-                setTimeout(() => this.createBeep(659, 0.1, 'sine', 0.2), 50); // ミ
-                setTimeout(() => this.createBeep(784, 0.15, 'sine', 0.2), 100); // ソ
-            }
+            // アイテム取得音（キラキラ + エコー効果）
+playItem() {
+    if (!this.enabled || !this.audioContext) return;
+    
+    try {
+        // メインの音（ド→ミ→ソ）
+        this.createItemNote(523, 0, 0.25); // ド
+        this.createItemNote(659, 50, 0.25); // ミ
+        this.createItemNote(784, 100, 0.3); // ソ
+        
+        // エコー効果（150ms後に音量を下げて再生）
+        setTimeout(() => {
+            this.createItemNote(523, 0, 0.12); // ド（エコー）
+            this.createItemNote(659, 50, 0.12); // ミ（エコー）
+            this.createItemNote(784, 100, 0.15); // ソ（エコー）
+        }, 150);
+        
+        // 第2エコー（300ms後にさらに音量を下げて再生）
+        setTimeout(() => {
+            this.createItemNote(523, 0, 0.06); // ド（第2エコー）
+            this.createItemNote(659, 50, 0.06); // ミ（第2エコー）
+            this.createItemNote(784, 100, 0.08); // ソ（第2エコー）
+        }, 300);
+        
+    } catch (error) {
+        console.error('❌ アイテム音再生エラー:', error);
+    }
+}
+
+// アイテム音専用のヘルパー関数
+createItemNote(frequency, delay, volume) {
+    if (!this.enabled || !this.audioContext) return;
+    
+    setTimeout(() => {
+        try {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            // より滑らかな音量フェード
+            gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.4);
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.4);
+        } catch (error) {
+            console.error('❌ アイテムノート再生エラー:', error);
+        }
+    }, delay);
+}
     
             // コイン音（高いド→高いミ）
 playCoin() {
