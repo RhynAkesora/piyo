@@ -476,7 +476,7 @@
            <div class="start-button-container">
                <div class="version-info-group">
                    <span class="version-text" style="color: white !important;">Ver.0.940</span>
-                   <div class="last-update">LastUpDate 2025/06/07 05:52</div>
+                   <div class="last-update">LastUpDate 2025/06/07 05:57</div>
                </div>
            </div>
         <div style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 25;">
@@ -1067,7 +1067,14 @@ playDissonantNote(freq1, freq2, startTime, duration) {
 
 function hideUpdateHistory() {
     console.log('🔙 更新履歴画面を非表示');
-    showStartScreen();
+    
+    // 更新履歴画面を非表示
+    const updateHistoryScreen = document.getElementById('updateHistoryScreen');
+    updateHistoryScreen.classList.add('hidden');
+    updateHistoryScreen.style.display = 'none';
+    
+    // タイトル画面を表示
+    document.getElementById('startScreen').classList.remove('hidden');
 }
 
         // 音のON/OFF切り替え関数
