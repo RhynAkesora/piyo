@@ -1116,24 +1116,29 @@ function hideUpdateHistory() {
 }
 
         async function checkHighScore(gameStats) {
-            try {
-                const categories = ['score', 'distance', 'enemyKills', 'speedLevel'];
-        
-                for (let category of categories) {
-                    const snapshot = await database.ref('scores').orderByChild(category).limitToLast(20).once('value');
-                    const data = snapshot.val();
+    try {
+        const categories = ['score', 'distance', 'enemyKills', 'speedLevel'];
+
+        for (let category of categories) {
+            // 全データを取得して正確に上位20件を判定
+            const snapshot = await database.ref('scores').once('value');
+            const data = snapshot.val();
+    
+            if (!data) return true; // データなしなら記録
+    
+            const allRankings = Object.values(data).sort((a, b) => b[category] - a[category]);
+            const top20 = allRankings.slice(0, 20); // 上位20件のみ抽出
             
-                    if (!data) return true; // データなしなら記録
-            
-                    const rankings = Object.values(data).sort((a, b) => b[category] - a[category]);
-                    if (rankings.length < 20 || gameStats[category] > rankings[rankings.length - 1][category]) {
-                        return true; // どれか1つでも20位以内なら記録
-                    }
-                }
-        
+            // 20位以内かどうかを正確に判定
+            if (top20.length < 20 || gameStats[category] > top20[top20.length - 1][category]) {
+                return true; // どれか1つでも20位以内なら記録
+            }
+        }
+
         return false;
     } catch (error) {
-        return true;
+        console.error('❌ ハイスコアチェックエラー:', error);
+        return true; // エラー時は記録を許可
     }
 }
         
