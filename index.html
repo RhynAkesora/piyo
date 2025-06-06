@@ -537,7 +537,7 @@
         
         <div id="ui">
             <div>📏 <span id="distance">0</span>m</div>
-            <div>✨ <span id="score">0</span></div>
+            <div>💴 <span id="score">0</span></div>
             <div>💖 <span id="lives">3</span></div>
             <div>👹 <span id="enemyKills">0</span>体撃破</div>
             <div>⚡ レベル<span id="speedLevel">1</span> (<span id="speedPercent">100</span>%)</div>
@@ -889,14 +889,14 @@ playDissonantNote(freq1, freq2, startTime, duration) {
         
         // ランキングタイトルを表示
         const titles = {
-            score: '📊 スコアランキング',
+            score: '💴 金額ランキング',
             distance: '📏 距離ランキング',
             enemyKills: '👹 撃破数ランキング',
             speedLevel: '⚡ レベルランキング'
         };
         
         const units = {
-            score: '点',
+            score: '円',
             distance: 'm',
             enemyKills: '体',
             speedLevel: 'レベル'
@@ -2238,7 +2238,7 @@ playDissonantNote(freq1, freq2, startTime, duration) {
                 console.log('🎉 ハイスコア！名前入力画面表示');
                 showNameInput();
             } else {
-                console.log('📊 通常スコア：アラート表示');
+                console.log('💴 通常スコア：アラート表示');
                 alert(`ゲームオーバー\n` +
                       `それはちょっと世間は許してくれませんよ〜🐤\n` +
                       `到達距離: ${finalGameStats.distance}m\n` +
