@@ -476,8 +476,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.927</span>
-                   <div class="last-update">LastUpDate 2025/06/07 04:07</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.928</span>
+                   <div class="last-update">LastUpDate 2025/06/07 04:12</div>
                </div>
            </div>
         <div style="position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 25;">
@@ -646,17 +646,17 @@ playJump() {
                 setTimeout(() => this.createBeep(784, 0.15, 'sine', 0.2), 100); // ソ
             }
     
-            // コイン音（ド→ミ）
+            // コイン音（高いド→高いミ）
 playCoin() {
     if (!this.enabled || !this.audioContext) return;
     
     try {
-        // ド（16分音符 = 0.0625秒）
+        // 高いド（16分音符 = 0.0625秒）
         const osc1 = this.audioContext.createOscillator();
         const gain1 = this.audioContext.createGain();
         osc1.connect(gain1);
         gain1.connect(this.audioContext.destination);
-        osc1.frequency.value = 523; // ド (C5)
+        osc1.frequency.value = 1047; // 高いド (C6)
         osc1.type = 'sine';
         gain1.gain.setValueAtTime(0.3, this.audioContext.currentTime);
         gain1.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.0625);
@@ -664,7 +664,7 @@ playCoin() {
         osc1.start(this.audioContext.currentTime);
         osc1.stop(this.audioContext.currentTime + 0.0625);
         
-        // ミ（8分音符 = 0.125秒、16分音符後に開始）
+        // 高いミ（4分音符 = 0.25秒、16分音符後に開始）
         setTimeout(() => {
             if (!this.enabled || !this.audioContext) return;
             
@@ -672,13 +672,13 @@ playCoin() {
             const gain2 = this.audioContext.createGain();
             osc2.connect(gain2);
             gain2.connect(this.audioContext.destination);
-            osc2.frequency.value = 659; // ミ (E5)
+            osc2.frequency.value = 1319; // 高いミ (E6)
             osc2.type = 'sine';
             gain2.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-            gain2.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.125);
+            gain2.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.25);
             
             osc2.start(this.audioContext.currentTime);
-            osc2.stop(this.audioContext.currentTime + 0.125);
+            osc2.stop(this.audioContext.currentTime + 0.25);
         }, 62.5); // 16分音符後（62.5ms）
         
     } catch (error) {
