@@ -476,8 +476,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.928</span>
-                   <div class="last-update">LastUpDate 2025/06/07 04:12</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.929</span>
+                   <div class="last-update">LastUpDate 2025/06/07 04:15</div>
                </div>
            </div>
         <div style="position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 25;">
@@ -656,7 +656,7 @@ playCoin() {
         const gain1 = this.audioContext.createGain();
         osc1.connect(gain1);
         gain1.connect(this.audioContext.destination);
-        osc1.frequency.value = 1047; // 高いド (C6)
+        osc1.frequency.value = 2093; // 高いド (C6)
         osc1.type = 'sine';
         gain1.gain.setValueAtTime(0.3, this.audioContext.currentTime);
         gain1.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.0625);
@@ -672,7 +672,7 @@ playCoin() {
             const gain2 = this.audioContext.createGain();
             osc2.connect(gain2);
             gain2.connect(this.audioContext.destination);
-            osc2.frequency.value = 1319; // 高いミ (E6)
+            osc2.frequency.value = 2637; // 高いミ (E6)
             osc2.type = 'sine';
             gain2.gain.setValueAtTime(0.3, this.audioContext.currentTime);
             gain2.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.25);
