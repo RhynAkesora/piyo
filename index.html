@@ -1071,6 +1071,13 @@ function hideUpdateHistory() {
         if (soundManager.enabled && soundManager.audioContext && soundManager.audioContext.state === 'suspended') {
             soundManager.audioContext.resume();
         }
+
+        // 音をONにした時のテスト音（コイン音）
+        if (soundManager.enabled) {
+            setTimeout(() => {
+                soundManager.playCoin();
+            }, 100); // 100ms後に再生（AudioContext有効化を待つ）
+        }
     }
 }
 
