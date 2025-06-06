@@ -476,8 +476,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.930</span>
-                   <div class="last-update">LastUpDate 2025/06/07 04:20</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.931</span>
+                   <div class="last-update">LastUpDate 2025/06/07 04:24</div>
                </div>
            </div>
         <div style="position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 25;">
@@ -653,7 +653,7 @@ playKill() {
         osc.type = 'square'; // 力強い音
         
         // 音量も調整
-        gain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        gain.gain.setValueAtTime(0.15, this.audioContext.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
         
         osc.start(this.audioContext.currentTime);
@@ -683,7 +683,7 @@ playCoin() {
         gain1.connect(this.audioContext.destination);
         osc1.frequency.value = 2093; // 高いド (C6)
         osc1.type = 'sine';
-        gain1.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        gain1.gain.setValueAtTime(0.15, this.audioContext.currentTime);
         gain1.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.0625);
         
         osc1.start(this.audioContext.currentTime);
@@ -699,7 +699,7 @@ playCoin() {
             gain2.connect(this.audioContext.destination);
             osc2.frequency.value = 2637; // 高いミ (E6)
             osc2.type = 'sine';
-            gain2.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+            gain2.gain.setValueAtTime(0.15, this.audioContext.currentTime);
             gain2.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.25);
             
             osc2.start(this.audioContext.currentTime);
