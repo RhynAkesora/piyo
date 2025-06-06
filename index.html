@@ -652,7 +652,7 @@ playKill() {
         osc.type = 'square'; // 力強い音
         
         // 音量も調整
-        gain.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+        gain.gain.setValueAtTime(0.1, this.audioContext.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
         
         osc.start(this.audioContext.currentTime);
@@ -682,7 +682,7 @@ playCoin() {
         gain1.connect(this.audioContext.destination);
         osc1.frequency.value = 2093; // 高いド (C6)
         osc1.type = 'sine';
-        gain1.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+        gain1.gain.setValueAtTime(0.1, this.audioContext.currentTime);
         gain1.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.0625);
         
         osc1.start(this.audioContext.currentTime);
@@ -698,7 +698,7 @@ playCoin() {
             gain2.connect(this.audioContext.destination);
             osc2.frequency.value = 2637; // 高いミ (E6)
             osc2.type = 'sine';
-            gain2.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+            gain2.gain.setValueAtTime(0.1, this.audioContext.currentTime);
             gain2.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.25);
             
             osc2.start(this.audioContext.currentTime);
