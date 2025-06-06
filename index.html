@@ -475,8 +475,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.935</span>
-                   <div class="last-update">LastUpDate 2025/06/07 04:50</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.936</span>
+                   <div class="last-update">LastUpDate 2025/06/07 04:57</div>
                </div>
            </div>
         <div style="position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 25;">
@@ -710,43 +710,57 @@ playCoin() {
     }
     }
 
-    // ダメージ音（痛い感じ）
+    // ダメージ音（レ#→レ→ド#の不協和音）
 playDamage() {
     if (!this.enabled || !this.audioContext) return;
     
     try {
-        // 不協和音で「痛い」感じを表現
-        const duration = 0.4;
-        
-        // 低いブザー音
-        const osc1 = this.audioContext.createOscillator();
-        const gain1 = this.audioContext.createGain();
-        osc1.connect(gain1);
-        gain1.connect(this.audioContext.destination);
-        osc1.frequency.value = 150; // 低音
-        osc1.type = 'sawtooth';
-        gain1.gain.setValueAtTime(0.2, this.audioContext.currentTime);
-        gain1.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
-        
-        // 不協和音を重ねる
-        const osc2 = this.audioContext.createOscillator();
-        const gain2 = this.audioContext.createGain();
-        osc2.connect(gain2);
-        gain2.connect(this.audioContext.destination);
-        osc2.frequency.value = 170; // 微妙にずらした音
-        osc2.type = 'sawtooth';
-        gain2.gain.setValueAtTime(0.15, this.audioContext.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
-        
+        const noteDuration = 0.125; // 8分音符（125ms）
         const now = this.audioContext.currentTime;
-        osc1.start(now);
-        osc2.start(now);
-        osc1.stop(now + duration);
-        osc2.stop(now + duration);
+        
+        // レ# (D#4 = 311.13Hz) + 半音ずれ (E4 = 329.63Hz)
+        this.playDissonantNote(311.13, 329.63, now, noteDuration);
+        
+        // レ (D4 = 293.66Hz) + 半音ずれ (D#4 = 311.13Hz)
+        this.playDissonantNote(293.66, 311.13, now + noteDuration, noteDuration);
+        
+        // ド# (C#4 = 277.18Hz) + 半音ずれ (D4 = 293.66Hz)
+        this.playDissonantNote(277.18, 293.66, now + noteDuration * 2, noteDuration);
         
     } catch (error) {
         console.error('❌ ダメージ音再生エラー:', error);
     }
+}
+
+// 不協和音ヘルパー関数
+playDissonantNote(freq1, freq2, startTime, duration) {
+    if (!this.enabled || !this.audioContext) return;
+    
+    // メイン音
+    const osc1 = this.audioContext.createOscillator();
+    const gain1 = this.audioContext.createGain();
+    osc1.connect(gain1);
+    gain1.connect(this.audioContext.destination);
+    osc1.frequency.value = freq1;
+    osc1.type = 'square'; // より痛い感じの音色
+    gain1.gain.setValueAtTime(0.15, startTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+    
+    // 不協和音（半音ずれ）
+    const osc2 = this.audioContext.createOscillator();
+    const gain2 = this.audioContext.createGain();
+    osc2.connect(gain2);
+    gain2.connect(this.audioContext.destination);
+    osc2.frequency.value = freq2;
+    osc2.type = 'square';
+    gain2.gain.setValueAtTime(0.12, startTime);
+    gain2.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+    
+    osc1.start(startTime);
+    osc2.start(startTime);
+    osc1.stop(startTime + duration);
+    osc2.stop(startTime + duration);
+}
 }
     
             // 音のON/OFF切り替え
