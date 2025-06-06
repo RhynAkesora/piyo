@@ -680,13 +680,6 @@ playItem() {
             this.createItemNote(784, 100, 0.15); // ソ（エコー）
         }, 150);
         
-        // 第2エコー（300ms後にさらに音量を下げて再生）
-        setTimeout(() => {
-            this.createItemNote(523, 0, 0.06); // ド（第2エコー）
-            this.createItemNote(659, 50, 0.06); // ミ（第2エコー）
-            this.createItemNote(784, 100, 0.08); // ソ（第2エコー）
-        }, 300);
-        
     } catch (error) {
         console.error('❌ アイテム音再生エラー:', error);
     }
