@@ -476,8 +476,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.929</span>
-                   <div class="last-update">LastUpDate 2025/06/07 04:15</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.930</span>
+                   <div class="last-update">LastUpDate 2025/06/07 04:20</div>
                </div>
            </div>
         <div style="position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 25;">
@@ -634,10 +634,35 @@ playJump() {
 }
             
     
-            // 敵撃破音（バシュー）
-            playKill() {
-                this.createBeep(660, 0.2, 'sawtooth', 0.25);
-            }
+            // 敵撃破音（バシューン）
+playKill() {
+    if (!this.enabled || !this.audioContext) return;
+    
+    try {
+        // 下降する音程で「バシューン」を表現
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioContext.destination);
+        
+        // 高音から低音へ急降下
+        osc.frequency.setValueAtTime(800, this.audioContext.currentTime);           // 高音から開始
+        osc.frequency.exponentialRampToValueAtTime(200, this.audioContext.currentTime + 0.15); // 低音へ急降下
+        
+        osc.type = 'square'; // 力強い音
+        
+        // 音量も調整
+        gain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+        
+        osc.start(this.audioContext.currentTime);
+        osc.stop(this.audioContext.currentTime + 0.2);
+        
+    } catch (error) {
+        console.error('❌ 撃破音再生エラー:', error);
+    }
+}
     
             // アイテム取得音（キラキラ）
             playItem() {
