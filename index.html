@@ -605,10 +605,13 @@
                 }
             }
     
-            // ジャンプ音（ピロリン）
+            // ジャンプ音（ぴょーん）
             playJump() {
-                this.createBeep(440, 0.15, 'square', 0.2);
-            }
+            // 上昇する音程でぴょーんを表現
+            this.createBeep(330, 0.08, 'sine', 0.25);      // ド（低音から開始）
+            setTimeout(() => this.createBeep(440, 0.08, 'sine', 0.25), 40);  // ラ
+            setTimeout(() => this.createBeep(550, 0.12, 'sine', 0.2), 80);   // ド#（高音で終了）
+        }
     
             // 敵撃破音（バシュー）
             playKill() {
