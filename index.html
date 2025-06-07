@@ -861,87 +861,87 @@
     }
 
         // レベルアップ音（ヒューイ）- 派手バージョン
-        playLevelUp() {
-            if (!this.audioContext) return;
-    
-            try {
-        const duration = 1.2; // 少し長めに
-        const now = this.audioContext.currentTime;
-        
-        // メロディーライン: ミ→ファ→ソ→ラ (E5→F5→G5→A5) 1オクターブ上
-        const melody = this.audioContext.createOscillator();
-        const melodyGain = this.audioContext.createGain();
-        melody.connect(melodyGain);
-        melodyGain.connect(this.audioContext.destination);
-        
-        melody.type = 'sine';
-        melody.frequency.setValueAtTime(659.25, now);           // ミ(E5)
-        melody.frequency.exponentialRampToValueAtTime(698.46, now + 0.3); // ファ(F5)
-        melody.frequency.exponentialRampToValueAtTime(783.99, now + 0.6); // ソ(G5)
-        melody.frequency.exponentialRampToValueAtTime(880.00, now + duration); // ラ(A5)
-        
-        // ハモリライン: ド→レ→ミ→ファ (C5→D5→E5→F5) 1オクターブ上
-        const harmony = this.audioContext.createOscillator();
-        const harmonyGain = this.audioContext.createGain();
-        harmony.connect(harmonyGain);
-        harmonyGain.connect(this.audioContext.destination);
-        
-        harmony.type = 'sine';
-        harmony.frequency.setValueAtTime(523.25, now);           // ド(C5)
-        harmony.frequency.exponentialRampToValueAtTime(587.33, now + 0.3); // レ(D5)
-        harmony.frequency.exponentialRampToValueAtTime(659.25, now + 0.6); // ミ(E5)
-        harmony.frequency.exponentialRampToValueAtTime(698.46, now + duration); // ファ(F5)
-        
-        // 追加ハモリ（低音部）: ド→レ→ミ→ファ (C4→D4→E4→F4)
-        const bass = this.audioContext.createOscillator();
-        const bassGain = this.audioContext.createGain();
-        bass.connect(bassGain);
-        bassGain.connect(this.audioContext.destination);
-        
-        bass.type = 'triangle'; // 温かみのある音色
-        bass.frequency.setValueAtTime(261.63, now);           // ド(C4)
-        bass.frequency.exponentialRampToValueAtTime(293.66, now + 0.3); // レ(D4)
-        bass.frequency.exponentialRampToValueAtTime(329.63, now + 0.6); // ミ(E4)
-        bass.frequency.exponentialRampToValueAtTime(349.23, now + duration); // ファ(F4)
-        
-        // キラキラエフェクト（高音域でのスパークル）
-        const sparkle = this.audioContext.createOscillator();
-        const sparkleGain = this.audioContext.createGain();
-        sparkle.connect(sparkleGain);
-        sparkleGain.connect(this.audioContext.destination);
-        
-        sparkle.type = 'square';
-        sparkle.frequency.setValueAtTime(1318.51, now + 0.2);           // ミ(E6) 超高音
-        sparkle.frequency.exponentialRampToValueAtTime(1760.00, now + 0.8); // ラ(A6)
-        
-        // 音量設定（段階的にフェードイン・アウト）
-        melodyGain.gain.setValueAtTime(0.05, now);
-        melodyGain.gain.exponentialRampToValueAtTime(0.25, now + 0.3);
-        melodyGain.gain.exponentialRampToValueAtTime(0.01, now + duration + 0.2);
-        
-        harmonyGain.gain.setValueAtTime(0.05, now);
-        harmonyGain.gain.exponentialRampToValueAtTime(0.2, now + 0.3);
-        harmonyGain.gain.exponentialRampToValueAtTime(0.01, now + duration + 0.2);
-        
-        bassGain.gain.setValueAtTime(0.05, now);
-        bassGain.gain.exponentialRampToValueAtTime(0.15, now + 0.3);
-        bassGain.gain.exponentialRampToValueAtTime(0.01, now + duration + 0.2);
-        
-        sparkleGain.gain.setValueAtTime(0.0, now + 0.2);
-        sparkleGain.gain.exponentialRampToValueAtTime(0.15, now + 0.5);
-        sparkleGain.gain.exponentialRampToValueAtTime(0.01, now + 0.9);
-        
-        // 全て同時スタート
-        melody.start(now);
-        harmony.start(now);
-        bass.start(now);
-        sparkle.start(now + 0.2); // スパークルは少し遅れて開始
-        
-        melody.stop(now + duration + 0.2);
-        harmony.stop(now + duration + 0.2);
-        bass.stop(now + duration + 0.2);
-        sparkle.stop(now + 0.9);
-        
+    playLevelUp() {
+        if (!this.audioContext) return;
+
+        try {
+            const duration = 1.2; // 少し長めに
+            const now = this.audioContext.currentTime;
+            
+            // メロディーライン: ミ→ファ→ソ→ラ (E5→F5→G5→A5) 1オクターブ上
+            const melody = this.audioContext.createOscillator();
+            const melodyGain = this.audioContext.createGain();
+            melody.connect(melodyGain);
+            melodyGain.connect(this.audioContext.destination);
+            
+            melody.type = 'sine';
+            melody.frequency.setValueAtTime(659.25, now);           // ミ(E5)
+            melody.frequency.exponentialRampToValueAtTime(698.46, now + 0.3); // ファ(F5)
+            melody.frequency.exponentialRampToValueAtTime(783.99, now + 0.6); // ソ(G5)
+            melody.frequency.exponentialRampToValueAtTime(880.00, now + duration); // ラ(A5)
+            
+            // ハモリライン: ド→レ→ミ→ファ (C5→D5→E5→F5) 1オクターブ上
+            const harmony = this.audioContext.createOscillator();
+            const harmonyGain = this.audioContext.createGain();
+            harmony.connect(harmonyGain);
+            harmonyGain.connect(this.audioContext.destination);
+            
+            harmony.type = 'sine';
+            harmony.frequency.setValueAtTime(523.25, now);           // ド(C5)
+            harmony.frequency.exponentialRampToValueAtTime(587.33, now + 0.3); // レ(D5)
+            harmony.frequency.exponentialRampToValueAtTime(659.25, now + 0.6); // ミ(E5)
+            harmony.frequency.exponentialRampToValueAtTime(698.46, now + duration); // ファ(F5)
+            
+            // 追加ハモリ（低音部）: ド→レ→ミ→ファ (C4→D4→E4→F4)
+            const bass = this.audioContext.createOscillator();
+            const bassGain = this.audioContext.createGain();
+            bass.connect(bassGain);
+            bassGain.connect(this.audioContext.destination);
+            
+            bass.type = 'triangle'; // 温かみのある音色
+            bass.frequency.setValueAtTime(261.63, now);           // ド(C4)
+            bass.frequency.exponentialRampToValueAtTime(293.66, now + 0.3); // レ(D4)
+            bass.frequency.exponentialRampToValueAtTime(329.63, now + 0.6); // ミ(E4)
+            bass.frequency.exponentialRampToValueAtTime(349.23, now + duration); // ファ(F4)
+            
+            // キラキラエフェクト（高音域でのスパークル）
+            const sparkle = this.audioContext.createOscillator();
+            const sparkleGain = this.audioContext.createGain();
+            sparkle.connect(sparkleGain);
+            sparkleGain.connect(this.audioContext.destination);
+            
+            sparkle.type = 'square';
+            sparkle.frequency.setValueAtTime(1318.51, now + 0.2);           // ミ(E6) 超高音
+            sparkle.frequency.exponentialRampToValueAtTime(1760.00, now + 0.8); // ラ(A6)
+            
+            // 音量設定（段階的にフェードイン・アウト）
+            melodyGain.gain.setValueAtTime(0.05, now);
+            melodyGain.gain.exponentialRampToValueAtTime(0.25, now + 0.3);
+            melodyGain.gain.exponentialRampToValueAtTime(0.01, now + duration + 0.2);
+            
+            harmonyGain.gain.setValueAtTime(0.05, now);
+            harmonyGain.gain.exponentialRampToValueAtTime(0.2, now + 0.3);
+            harmonyGain.gain.exponentialRampToValueAtTime(0.01, now + duration + 0.2);
+            
+            bassGain.gain.setValueAtTime(0.05, now);
+            bassGain.gain.exponentialRampToValueAtTime(0.15, now + 0.3);
+            bassGain.gain.exponentialRampToValueAtTime(0.01, now + duration + 0.2);
+            
+            sparkleGain.gain.setValueAtTime(0.0, now + 0.2);
+            sparkleGain.gain.exponentialRampToValueAtTime(0.15, now + 0.5);
+            sparkleGain.gain.exponentialRampToValueAtTime(0.01, now + 0.9);
+            
+            // 全て同時スタート
+            melody.start(now);
+            harmony.start(now);
+            bass.start(now);
+            sparkle.start(now + 0.2); // スパークルは少し遅れて開始
+            
+            melody.stop(now + duration + 0.2);
+            harmony.stop(now + duration + 0.2);
+            bass.stop(now + duration + 0.2);
+            sparkle.stop(now + 0.9);
+            
         } catch (error) {
             console.error('❌ レベルアップ音再生エラー:', error);
         }
@@ -1020,8 +1020,7 @@
 }
 
 // グローバル変数
-        let soundManager;
-
+let soundManager;
         // handleStartScreenClick関数を追加
         function handleStartScreenClick(event) {
             if (event.target.id === 'startButton') return;
