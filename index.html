@@ -3418,6 +3418,11 @@ function hideUpdateHistory() {
                 nameInputScreen.classList.add('hidden');
                 nameInputScreen.style.display = 'none';
             }
+            
+            if (soundManager) {
+                soundManager.playBGM('title');
+                console.log('🎵 タイトル画面表示：タイトルBGM再生');
+            }
         }
 
     </script>
