@@ -633,7 +633,6 @@
         this.currentBGM = null;
         
         console.log('🎵 BGM初期化完了');
-        }
 
     // 基本的なビープ音生成
     createBeep(frequency, duration, type = 'sine', volume = 0.3) {
@@ -658,9 +657,8 @@
             console.error('❌ 効果音再生エラー:', error);
         }
     }
-}
 
-    // ジャンプ音（びよーん）
+    playBGM(bgmType)
     playJump() {
         if (!this.audioContext) return;
         
@@ -946,7 +944,6 @@
             console.error('❌ レベルアップ音再生エラー:', error);
         }
     }
-}
 
     // BGM制御メソッド
     playBGM(bgmType) {
