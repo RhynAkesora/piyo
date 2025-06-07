@@ -2652,6 +2652,12 @@ function hideUpdateHistory() {
 
         // タイトル画面表示確認
         console.log('🔄 リセット完了：タイトル画面表示確認');
+
+        // タイトルBGM再生を追加 ←
+        if (soundManager) {
+            soundManager.playBGM('title');
+            console.log('🎵 リセット時：タイトルBGM再生開始');
+        }
     }
         
         function render() {
