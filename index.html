@@ -947,8 +947,8 @@
 
     // BGM制御メソッド
     playBGM(bgmType) {
+    console.log('🎵 playBGM呼び出し:', bgmType);
     try {
-        // 現在のBGMを停止
         this.stopAllBGM();
         
         let targetBGM = null;
@@ -971,15 +971,13 @@
         }
         
         if (targetBGM) {
-            targetBGM.currentTime = 0; // 最初から再生
+            targetBGM.currentTime = 0;
             targetBGM.play().then(() => {
                 this.currentBGM = targetBGM;
-                console.log(`🎵 BGM開始成功: ${bgmType}`);
+                console.log(`✅ BGM再生成功: ${bgmType}`);
             }).catch(error => {
-                console.log(`🎵 BGM再生失敗: ${bgmType}`, error);
+                console.log(`❌ BGM再生失敗: ${bgmType}`, error);
             });
-        } else {
-            console.log(`❌ BGMオブジェクトが見つかりません: ${bgmType}`);
         }
     } catch (error) {
         console.error('❌ BGM再生エラー:', error);
