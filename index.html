@@ -478,6 +478,15 @@
 <body>
     <div id="gameContainer">
        <canvas id="gameCanvas" width="1000" height="550"></canvas>
+
+        <!-- ★★★ ここに注意書き画面を追加 ★★★ -->
+        <div id="welcomeScreen" onclick="showTitleScreen()">
+            <div class="game-title">🐣 ぴよ氏の冒険</div>
+            <div class="instruction-text" style="display: block; font-size: 4vw; margin-top: 20px;">
+                どこまで遠くへ行けるかな？
+            </div>
+            <div class="tap-to-start">画面をタップして開始</div>
+        </div>
        
        <div id="startScreen" onclick="handleStartScreenClick(event)">
            <div class="game-title">🐣 ぴよ氏の冒険</div>
@@ -485,8 +494,8 @@
            <div class="instruction-text">どこまで遠くへ行けるかな？</div>
            <div class="start-button-container">
                <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.946</span>
-                   <div class="last-update">LastUpDate 2025/06/07 16:03</div>
+                   <span class="version-text" style="color: white !important;">Ver.0.947</span>
+                   <div class="last-update">LastUpDate 2025/06/08 04:18</div>
                </div>
            </div>
         <div style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 25;">
@@ -530,9 +539,10 @@
     <div style="color: #ffd700; font-size: 4vw; font-weight: bold; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">📝 更新履歴</div>
     
     <div id="updateHistoryList" style="background: rgba(0,0,0,0.8); border: 2px solid #8a2be2; border-radius: 10px; padding: 8px; width: 95vw; height: 65vh; overflow-y: auto; overflow-x: hidden; color: white; font-size: 2.5vw; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain;">
-        <div style="color: #ffd700; font-weight: bold; margin-bottom: 15px; text-align: center; font-size: 3vw;">最終更新日: 2025/06/07 16:03</div>
+        <div style="color: #ffd700; font-weight: bold; margin-bottom: 15px; text-align: center; font-size: 3vw;">最終更新日: 2025/06/08 04:18</div>
         
         <div style="color: #ffffff; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #8a2be2; padding-bottom: 5px;">📝 直近の更新内容</div>
+        <div style="margin-bottom: 8px; padding-left: 5px;">• 注意書き画面を追加、サウンドの設定変更、タイトル画像追加</div>
         <div style="margin-bottom: 8px; padding-left: 5px;">• BGMファイルを追加</div>
         <div style="margin-bottom: 8px; padding-left: 5px;">• レベルアップ音を追加</div>
         <div style="margin-bottom: 8px; padding-left: 5px;">• 音のオンオフ機能を削除（バグ対策）</div>
@@ -1234,6 +1244,29 @@ function hideUpdateHistory() {
     document.getElementById('startScreen').classList.remove('hidden');
 }
 
+        // ★★★ ここに新しい関数を追加 ★★★
+        function showWelcomeScreen() {
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            document.getElementById('startScreen').classList.add('hidden');
+        }
+
+        function showTitleScreen() {
+            console.log('🎵 音声初期化開始');
+            
+            // ここで音声初期化（ユーザーアクション直後）
+            soundManager = new SoundManager();
+            
+            // 注意書き画面を隠してタイトル画面を表示
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+            
+            // タイトルBGM再生（確実に成功）
+            if (soundManager) {
+                soundManager.playBGM('title');
+                console.log('🎵 タイトルBGM再生開始');
+            }
+        }
+    
         function showNameInput() {
     console.log('👤 showNameInput関数開始');
     
@@ -3200,10 +3233,10 @@ function hideUpdateHistory() {
             console.log('🎮 ゲーム初期化開始...');
 
             // 効果音システム初期化
-            soundManager = new SoundManager();
+            // soundManager = new SoundManager();
             
             try {
-                // タイトル画像をランダムに選択（全29枚）
+                // タイトル画像をランダムに選択（全35枚）
                 const titleImages = [
                     'https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg',
                     'https://pbs.twimg.com/media/GjvkMpDbgAApxmV?format=jpg&name=large',
@@ -3234,6 +3267,12 @@ function hideUpdateHistory() {
                     'https://pbs.twimg.com/media/F8FVHdxaAAA78Zg?format=jpg&name=medium',
                     'https://pbs.twimg.com/media/F2nRkPCbcAAWcEg?format=jpg&name=large',
                     'https://pbs.twimg.com/media/Gq0121oXEAAaCfx?format=jpg&name=large'
+                    'https://github.com/RhynAkesora/piyo/blob/main/IMG_1509.jpeg'
+                    'https://github.com/RhynAkesora/piyo/blob/main/IMG_1538.jpeg'
+                    'https://pbs.twimg.com/media/GsxRrUwagAACft6?format=jpg&name=large'
+                    'https://pbs.twimg.com/media/GsXHt-GaoAAxmfi?format=jpg&name=large'
+                    'https://pbs.twimg.com/media/Gr9h-Q5WkAAsg3W?format=jpg&name=large'
+                    'https://pbs.twimg.com/media/GrKKOACWIAAfJNN?format=jpg&name=large'
                 ];
                 
                 const randomIndex = Math.floor(Math.random() * titleImages.length);
@@ -3270,10 +3309,13 @@ function hideUpdateHistory() {
             }
 
                 // タイトル画面BGM追加 ←
-                if (soundManager) {
-                soundManager.playBGM('title');
-                console.log('🎵 タイトルBGM再生開始');
-                }
+                // if (soundManager) {
+                // soundManager.playBGM('title');
+                // console.log('🎵 タイトルBGM再生開始');
+                //}
+
+                // ★★★ ここに追加 ★★★
+                showWelcomeScreen();
             }
         
         function checkOrientation() {
@@ -3419,10 +3461,12 @@ function hideUpdateHistory() {
                 nameInputScreen.style.display = 'none';
             }
             
-            if (soundManager) {
-                soundManager.playBGM('title');
-                console.log('🎵 タイトル画面表示：タイトルBGM再生');
-            }
+            // ★★★ この行を変更 ★★★
+            // if (soundManager) {
+            //     soundManager.playBGM('title');
+            //     console.log('🎵 タイトル画面表示：タイトルBGM再生');
+            // }
+            showTitleScreen(); // ← この1行に変更
         }
 
     </script>
