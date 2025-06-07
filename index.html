@@ -947,39 +947,44 @@
 
     // BGM制御メソッド
     playBGM(bgmType) {
-        try {
-            // 現在のBGMを停止
-            this.stopAllBGM();
-            
-            let targetBGM = null;
-            switch(bgmType) {
-                case 'title':
-                    targetBGM = this.titleBGM;
-                    break;
-                case 'stage':
-                    targetBGM = this.stageBGM;
-                    break;
-                case 'gameover':
-                    targetBGM = this.gameoverBGM;
-                    break;
-                default:
-                    console.log('❌ 不明なBGMタイプ:', bgmType);
-                    return;
-            }
-            
-            if (targetBGM) {
-                targetBGM.currentTime = 0; // 最初から再生
-                targetBGM.play().then(() => {
-                    this.currentBGM = targetBGM;
-                    console.log(`🎵 BGM開始: ${bgmType}`);
-                }).catch(error => {
-                    console.log('🎵 BGM自動再生がブロックされました（ユーザー操作後に再生されます）');
-                });
-            }
-        } catch (error) {
-            console.error('❌ BGM再生エラー:', error);
+    try {
+        // 現在のBGMを停止
+        this.stopAllBGM();
+        
+        let targetBGM = null;
+        switch(bgmType) {
+            case 'title':
+                targetBGM = this.titleBGM;
+                console.log('🎵 タイトルBGM選択');
+                break;
+            case 'stage':
+                targetBGM = this.stageBGM;
+                console.log('🎵 ステージBGM選択');
+                break;
+            case 'gameover':
+                targetBGM = this.gameoverBGM;
+                console.log('🎵 ゲームオーバーBGM選択');
+                break;
+            default:
+                console.log('❌ 不明なBGMタイプ:', bgmType);
+                return;
         }
+        
+        if (targetBGM) {
+            targetBGM.currentTime = 0; // 最初から再生
+            targetBGM.play().then(() => {
+                this.currentBGM = targetBGM;
+                console.log(`🎵 BGM開始成功: ${bgmType}`);
+            }).catch(error => {
+                console.log(`🎵 BGM再生失敗: ${bgmType}`, error);
+            });
+        } else {
+            console.log(`❌ BGMオブジェクトが見つかりません: ${bgmType}`);
+        }
+    } catch (error) {
+        console.error('❌ BGM再生エラー:', error);
     }
+}
     
     stopAllBGM() {
         try {
