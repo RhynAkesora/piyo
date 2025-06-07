@@ -2576,7 +2576,12 @@ function hideUpdateHistory() {
         function startGame() {
             console.log('ゲーム開始！');
 
-            // BGM修正：ゲーム中はstage BGMを再生
+            // ファイルテスト
+            console.log('title BGM object:', soundManager.titleBGM);
+            console.log('stage BGM object:', soundManager.stageBGM);
+            console.log('gameover BGM object:', soundManager.gameoverBGM);
+
+            // stage BGMを再生
             if (soundManager) {
                 soundManager.playBGM('Stage');  // ゲーム中BGM
                 console.log('🎵 ステージBGM再生試行');
