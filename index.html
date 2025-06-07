@@ -2573,7 +2573,7 @@ function hideUpdateHistory() {
 
             // BGM修正：ゲーム中はstage BGMを再生
             if (soundManager) {
-                soundManager.playBGM('Stage');
+                soundManager.playBGM('Stage');  // ゲーム中BGM
                 console.log('🎵 ステージBGM再生試行');
             }
             
@@ -3256,11 +3256,11 @@ function hideUpdateHistory() {
             }
 
                 // タイトル画面BGM追加 ←
-                if (soundManager) {
-                    soundManager.playBGM('title');
-                    console.log('🎵 タイトルBGM再生開始');
+                // if (soundManager) {
+                //    soundManager.playBGM('title');
+                //    console.log('🎵 タイトルBGM再生開始');
+                //}
             }
-        }
         
         function checkOrientation() {
             if (window.orientation !== undefined) {
