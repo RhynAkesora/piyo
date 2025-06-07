@@ -2564,6 +2564,12 @@ function hideUpdateHistory() {
         
         function startGame() {
             console.log('ゲーム開始！');
+
+            // BGMテスト追加 ←
+            if (soundManager) {
+                soundManager.playBGM('title');
+                console.log('🎵 タイトルBGM再生試行');
+            }
             
             if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
                 requestFullscreen();
