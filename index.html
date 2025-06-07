@@ -2479,6 +2479,12 @@ function hideUpdateHistory() {
     console.log('🎮 gameOver関数開始');
     gameState.gameStarted = false;
     gameState.gamePaused = true;
+
+    // ゲームオーバーBGM追加 ←
+    if (soundManager) {
+        soundManager.playBGM('gameover');
+        console.log('🎵 ゲームオーバーBGM再生');
+    }
     
     // 最終成績を保存
     finalGameStats = {
@@ -2565,10 +2571,10 @@ function hideUpdateHistory() {
         function startGame() {
             console.log('ゲーム開始！');
 
-            // BGMテスト追加 ←
+            // BGM修正：ゲーム中はstage BGMを再生
             if (soundManager) {
-                soundManager.playBGM('title');
-                console.log('🎵 タイトルBGM再生試行');
+                soundManager.playBGM('Stage');
+                console.log('🎵 ステージBGM再生試行');
             }
             
             if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
@@ -3247,6 +3253,11 @@ function hideUpdateHistory() {
             } catch (error) {
                 console.error('❌ 初期化エラー:', error);
                 console.error('🔍 エラー詳細:', error.stack);
+
+                // タイトル画面BGM追加 ←
+                if (soundManager) {
+                    soundManager.playBGM('title');
+                    console.log('🎵 タイトルBGM再生開始');
             }
         }
         
