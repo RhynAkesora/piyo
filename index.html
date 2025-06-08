@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=contain">
     <meta name="screen-orientation" content="landscape">
     <meta name="x5-orientation" content="landscape">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -538,6 +538,58 @@
     }
 }
 
+/* iPhone専用の修正 */
+@supports (-webkit-touch-callout: none) {
+    /* iPhone検出 */
+    body {
+        padding-left: env(safe-area-inset-left) !important;
+        padding-right: env(safe-area-inset-right) !important;
+    }
+    
+    #gameContainer {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: env(safe-area-inset-left);
+        margin-right: env(safe-area-inset-right);
+    }
+    
+    #startScreen {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+        box-sizing: border-box;
+    }
+    
+    #titleButtons {
+        right: calc(8px + env(safe-area-inset-right)) !important;
+    }
+    
+    /* ロゴと画像の中央寄せ強化 */
+    #startScreen img {
+        position: absolute;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+}
+
+/* iPhone 14 Pro専用調整 */
+@media only screen 
+    and (device-width: 393px) 
+    and (device-height: 852px) 
+    and (-webkit-device-pixel-ratio: 3) {
+    
+    #titleButtons {
+        right: calc(15px + env(safe-area-inset-right)) !important;
+        top: 42% !important;
+    }
+    
+    #titleButtons .game-button {
+        max-width: 28vw !important;
+        font-size: 2.8vw !important;
+    }
+}
+
+
+	    
     </style>
     
     <!-- Firebase CDN -->
