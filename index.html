@@ -68,19 +68,19 @@
         }
         
         #gameContainer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 40%, #FFB6C1 70%, #FFC0CB 100%);
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-            box-sizing: border-box;
-        }
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh !important;
+    background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 40%, #FFB6C1 70%, #FFC0CB 100%);
+    overflow: visible !important;
+    display: block;          /* ← flexからblockに変更 */
+    /* justify-content: center; ← 削除 */
+    /* align-items: center;     ← 削除 */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    box-sizing: border-box;
+}
         
         @media screen and (orientation: portrait) {
             #gameContainer {
@@ -109,16 +109,17 @@
         }
         
         #ui {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            color: white;
-            font-size: 3.5vw;
-            text-shadow: 2px 2px 4px rgba(255,20,147,0.8);
-            font-weight: bold;
-            z-index: 10;
-            line-height: 1.2;
-        }
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    color: white;
+    font-size: 3.5vw;
+    text-shadow: 2px 2px 4px rgba(255,20,147,0.8);
+    font-weight: bold;
+    z-index: 100; /* z-indexを上げる */
+    line-height: 1.2;
+    display: block !important; /* 強制表示 */
+}
         
         @media (min-width: 600px) {
             #ui {
@@ -172,16 +173,18 @@
         }
         
         #titleImage {
-            border: 4px solid #8B4513;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            width: 85vw;
-            height: 65vh;
-            max-width: 500px;
-            max-height: 400px;
-            object-fit: cover;
-            display: block;
+    /* 削除または以下のようにリセット */
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    object-fit: cover;
+    display: block;
+}isplay: block;
         }
 
         /* デスクトップ表示 */
@@ -467,7 +470,25 @@
             .creator-text {
                 font-size: 10px !important;
             }
+
+	/* ★★★ ここに追加 ★★★ */
+@keyframes gentlePulse {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+}
+
+.tap-text {
+    animation: gentlePulse 3s ease-in-out infinite;
+}
+
         }
+
+#titleButtons button {
+        z-index: 100 !important;
+        pointer-events: auto !important;
+        position: relative !important;
+    }
     </style>
     
     <!-- Firebase CDN -->
@@ -478,39 +499,176 @@
 <body>
     <div id="gameContainer">
        <canvas id="gameCanvas" width="1000" height="550"></canvas>
-       
-       <div id="startScreen" onclick="handleStartScreenClick(event)">
-           <div class="game-title">🐣 ぴよ氏の冒険</div>
-           <img id="titleImage" src="https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg" alt="ぴよ氏の冒険">
-           <div class="instruction-text">どこまで遠くへ行けるかな？</div>
-           <div class="start-button-container">
-               <div class="version-info-group">
-                   <span class="version-text" style="color: white !important;">Ver.0.946</span>
-                   <div class="last-update">LastUpDate 2025/06/07 16:03</div>
-               </div>
-           </div>
-        <div style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 25;">
-            <button class="game-button" onclick="showUpdateHistory(); event.stopPropagation();" id="updateHistoryButton" style="font-size: 2.5vw; padding: 8px 12px; min-width: auto; margin: 0; background: linear-gradient(135deg, #8a2be2, #9932cc);">📝 更新履歴</button>
-            <button class="game-button" onclick="showRanking(); event.stopPropagation();" id="rankingButton" style="font-size: 2.5vw; padding: 8px 12px; min-width: auto; margin: 0;">🏆 ランキング</button>
+
+	<div id="ui" style="display: block !important; visibility: visible !important; z-index: 1000 !important;">
+            <div>📏 <span id="distance">0</span>m</div>
+            <div>💴 <span id="score">0</span></div>
+            <div>💖 <span id="lives">3</span></div>
+            <div>👹 <span id="enemyKills">0</span>体撃破</div>
+            <div>⚡ レベル<span id="speedLevel">1</span> (<span id="speedPercent">100</span>%)</div>
+            <div>📈 次まで<span id="nextSpeedUp">300</span>m</div>
         </div>
-        <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
+
+        <!-- ★★★ ここに注意書き画面を追加 ★★★ -->
+        <div id="splashScreen" onclick="startApp()" style="
+    	position: fixed; 
+    	top: 0; 
+    	left: 0; 
+    	width: 100vw; 
+    	height: 100vh; 
+    	background: #000000; 
+    	display: flex; 
+    	flex-direction: column; 
+    	justify-content: space-between; 
+    	align-items: center; 
+    	z-index: 1000;
+    	cursor: pointer;
+    	padding: 5vh 5vw;
+    	box-sizing: border-box;
+	">
+    	<!-- 上部：注意文 -->
+    	<div style="
+        	color: white; 
+        	font-size: 3.5vw; 
+        	text-align: center;
+        	font-family: 'Arial', sans-serif;
+        	margin-top: 3vh;
+    	">
+        	⚠️注意⚠️<br>
+        	本作品は対象年齢を2歳以上と設定しております
+    	</div>
+    
+    	<!-- 中央：制作クレジット -->
+    	<div style="
+        	color: white; 
+        	font-size: 2.5vw; 
+        	text-align: center;
+        	font-family: 'Arial', sans-serif;
+        	line-height: 1.8;
+    	">
+        	Music by 喜びおじさん<br>
+        	Created by 喜びおじさん
+    	</div>
+    
+    	<!-- 中央下：Please Tap（点滅） -->
+    	<div class="tap-text" style="
+        	color: white; 
+        	font-size: 8vw; 
+        	font-weight: bold; 
+        	text-align: center;
+        	font-family: 'Arial', sans-serif;
+    	">
+        	Please Tap
+    	</div>
+    
+    	<!-- 下部：コピーライト -->
+    	<div style="
+        	color: white; 
+        	font-size: 2vw; 
+        	text-align: center;
+        	font-family: 'Arial', sans-serif;
+        	margin-bottom: 2vh;
+    	">
+        	©2025 ぴよ氏の冒険
+    	</div>
+	</div>
+    
+<div id="startScreen" onclick="handleTitleScreenClick(event)" style="
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+">
+<!-- ロゴを追加 -->
+<img src="https://github.com/RhynAkesora/piyo/blob/main/logo.png?raw=true" alt="ロゴ" style="
+    position: absolute;
+    top: -3%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 25vw;
+    height: auto;
+    z-index: 10;
+">
+
+<!-- タイトル画像を調整 -->
+<img id="titleImage" src="..." alt="ぴよ氏の冒険" style="
+    position: absolute;
+    top: 18vh;
+    left: 0;
+    width: 100vw; 
+    height: 65vh; 
+    object-fit: contain;
+    z-index: 1;
+">
+           <div style="
+        position: absolute;
+        bottom: 8vh;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: white;
+        font-size: 1.2vw;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        font-weight: bold;
+        justify-content: center;
+    ">
+   <span style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px;">Ver.0.950</span>
+   <span style="font-size: 1.0vw; opacity: 0.8; font-weight: normal;">LastUpDate 2025/06/08 14:10</span>
+</div>
+
+            <div id="titleButtons" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 25;">
+            <button class="game-button" id="updateHistoryButton" style="...">📝 更新履歴</button>
+	    <button class="game-button" id="rankingButton" style="...">🏆 ランキング</button>
+        </div>
+   
+　　        <div class="instruction-text" style="font-size: 3vw; margin-top: 10px; opacity: 0.8;">
         <div style="margin-top: 15px; text-align: center;">
-            <div class="copyright-text" style="color: rgba(255, 255, 255, 0.7); font-size: 2.2vw; margin-bottom: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); font-weight: normal;">© 2025 ぴよ氏の冒険</div>
-            <div class="creator-text" style="color: rgba(255, 255, 255, 0.6); font-size: 1.8vw; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); font-weight: normal;">Created by 喜びおじさん</div>
+            <div style="
+    position: absolute;
+    bottom: 0.5vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.5vw;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    line-height: 1.2;
+">
+    © 2025 ぴよ氏の冒険<br>
+    Created by 喜びおじさん
+</div>
         </div>
-            画面をタップまたはスペースキーで開始
+        <div id="startMessage" style="
+    position: absolute;
+    bottom: 3vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    font-size: 2vw;
+    text-align: center;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    font-weight: bold;
+    background: rgba(76, 175, 80, 0.8);
+    padding: 8px 20px;
+    border-radius: 25px;
+">画面をタップで開始</div>
         </div>
         <!-- この行を完全に削除 -->
        </div>
         
-        <div id="pauseScreen" class="hidden">
-            <div class="game-title">⏸️ ポーズ中</div>
-            <button id="resumeButton" class="game-button" onclick="pauseGame()">▶️ 再開</button>
-            <button id="restartButton" class="game-button" onclick="resetGame()">🔄 リスタート</button>
-            <div class="instruction-text">画面をタップまたはスペースキーで再開</div>
-        </div>
-        
-        <div id="rankingScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: flex-start; align-items: center; z-index: 30; padding: 10px; box-sizing: border-box; overflow: hidden;">
+<div id="pauseScreen" class="hidden">
+    <div class="game-title"⏸️ ポーズ中</div>
+    <button id="resumeButton" class="game-button" onclick="pauseGame()">▶️ 再開</button>
+    <button id="restartButton" class="game-button" onclick="resetGame()">🔄 リスタート</button>
+    <div class="instruction-text">画面をタップまたはスペースキーで再開</div>
+</div>
+
+<div id="rankingScreen" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: flex-start; align-items: center; z-index: 9999; padding: 10px; box-sizing: border-box; overflow: hidden;">
     <div style="color: #ffd700; font-size: 4vw; font-weight: bold; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">🏆 ランキング</div>
     
     <!-- ランキング切り替えボタン -->
@@ -526,14 +684,18 @@
     </div>
     <button class="game-button" onclick="hideRanking()" style="margin-top: 10px; z-index: 31; font-size: 3vw; padding: 8px 16px;">🔙 戻る</button>
 </div>
-        <div id="updateHistoryScreen" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: flex-start; align-items: center; z-index: 30; padding: 10px; box-sizing: border-box; overflow: hidden;">
+
+<div id="updateHistoryScreen" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: flex-start; align-items: center; z-index: 9999; padding: 10px; box-sizing: border-box; overflow: hidden;">
     <div style="color: #ffd700; font-size: 4vw; font-weight: bold; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">📝 更新履歴</div>
     
     <div id="updateHistoryList" style="background: rgba(0,0,0,0.8); border: 2px solid #8a2be2; border-radius: 10px; padding: 8px; width: 95vw; height: 65vh; overflow-y: auto; overflow-x: hidden; color: white; font-size: 2.5vw; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain;">
-        <div style="color: #ffd700; font-weight: bold; margin-bottom: 15px; text-align: center; font-size: 3vw;">最終更新日: 2025/06/07 16:03</div>
+        <div style="color: #ffd700; font-weight: bold; margin-bottom: 15px; text-align: center; font-size: 3vw;">最終更新日: 2025/06/08 14:10</div>
         
         <div style="color: #ffffff; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #8a2be2; padding-bottom: 5px;">📝 直近の更新内容</div>
-        <div style="margin-bottom: 8px; padding-left: 5px;">• BGMファイルを追加</div>
+	<div style="margin-bottom: 8px; padding-left: 5px;">• ランキング用BGMを実装</div>
+	<div style="margin-bottom: 8px; padding-left: 5px;">• アクセス画面を追加</div>
+        <div style="margin-bottom: 8px; padding-left: 5px;">• 注意書き画面を追加、サウンドの設定変更、タイトル画像追加</div>
+        <div style="margin-bottom: 8px; padding-left: 5px;">• BGMファイルを実装</div>
         <div style="margin-bottom: 8px; padding-left: 5px;">• レベルアップ音を追加</div>
         <div style="margin-bottom: 8px; padding-left: 5px;">• 音のオンオフ機能を削除（バグ対策）</div>
         <div style="margin-bottom: 8px; padding-left: 5px;">• ランキング登録ができないバグを修正</div>
@@ -546,6 +708,9 @@
         <div style="margin-bottom: 8px; padding-left: 5px;">• ジャンプ、撃破、ダメージ、コイン音を実装</div>
         <div style="margin-bottom: 8px; padding-left: 5px;">• 音のON/OFF機能を追加</div>
     </div>
+    
+    <button class="game-button" onclick="hideUpdateHistory()" style="margin-top: 10px; z-index: 31; font-size: 3vw; padding: 8px 16px;">🔙 戻る</button>
+</div>
     
     <button class="game-button" onclick="hideUpdateHistory()" style="margin-top: 10px; z-index: 31; font-size: 3vw; padding: 8px 16px;">🔙 戻る</button>
 </div>
@@ -571,15 +736,6 @@
         <div id="rightArea" class="touch-area">⭐ ジャンプ</div>
         
         <button id="pauseButton" onclick="pauseGame()">⏸️</button>
-        
-        <div id="ui">
-            <div>📏 <span id="distance">0</span>m</div>
-            <div>💴 <span id="score">0</span></div>
-            <div>💖 <span id="lives">3</span></div>
-            <div>👹 <span id="enemyKills">0</span>体撃破</div>
-            <div>⚡ レベル<span id="speedLevel">1</span> (<span id="speedPercent">100</span>%)</div>
-            <div>📈 次まで<span id="nextSpeedUp">300</span>m</div>
-        </div>
     </div>
 
     <!-- 更新通知 -->
@@ -614,20 +770,23 @@
             this.audioContext = null;
         }
 
-        // BGM用のAudio要素を作成
-        this.titleBGM = new Audio('title.mp3');
-        this.stageBGM = new Audio('stage.mp3');
-        this.gameoverBGM = new Audio('gameover.mp3');
-        
-        // ループ設定
-        this.titleBGM.loop = true;
-        this.stageBGM.loop = true;
-        this.gameoverBGM.loop = true;
-        
-        // 音量設定（0.0-1.0）
-        this.titleBGM.volume = 0.6;
-        this.stageBGM.volume = 0.5;
-        this.gameoverBGM.volume = 0.7;
+	// BGM用のAudio要素を作成
+	this.titleBGM = new Audio('title.mp3');
+	this.stageBGM = new Audio('stage.mp3');
+	this.gameoverBGM = new Audio('gameover.mp3');
+	this.rankingBGM = new Audio('ranking.mp3');
+
+	// ループ設定
+	this.titleBGM.loop = true;
+	this.stageBGM.loop = true;
+	this.gameoverBGM.loop = true;
+	this.rankingBGM.loop = true;
+
+	// 音量設定（0.0-1.0）
+	this.titleBGM.volume = 0.6;
+	this.stageBGM.volume = 0.5;
+	this.gameoverBGM.volume = 0.7;
+	this.rankingBGM.volume = 0.6;
 
         // 現在再生中のBGMを追跡
         this.currentBGM = null;
@@ -952,23 +1111,28 @@
         this.stopAllBGM();
         
         let targetBGM = null;
-        switch(bgmType) {
-            case 'title':
-                targetBGM = this.titleBGM;
-                console.log('🎵 タイトルBGM選択');
-                break;
-            case 'stage':
-                targetBGM = this.stageBGM;
-                console.log('🎵 ステージBGM選択');
-                break;
-            case 'gameover':
-                targetBGM = this.gameoverBGM;
-                console.log('🎵 ゲームオーバーBGM選択');
-                break;
-            default:
-                console.log('❌ 不明なBGMタイプ:', bgmType);
-                return;
-        }
+        
+	switch(bgmType) {
+	    case 'title':
+	        targetBGM = this.titleBGM;
+	        console.log('🎵 タイトルBGM選択');
+	        break;
+	    case 'stage':
+	        targetBGM = this.stageBGM;
+	        console.log('🎵 ステージBGM選択');
+	        break;
+	    case 'gameover':
+	        targetBGM = this.gameoverBGM;
+	        console.log('🎵 ゲームオーバーBGM選択');
+	        break;
+	    case 'ranking':
+	        targetBGM = this.rankingBGM;
+	        console.log('🎵 ランキングBGM選択');
+	        break;
+	    default:
+	        console.log('❌ 不明なBGMタイプ:', bgmType);
+	        return;
+	}
         
         if (targetBGM) {
             targetBGM.currentTime = 0;
@@ -984,26 +1148,30 @@
     }
 }
     
-    stopAllBGM() {
-        try {
-            if (this.titleBGM) {
-                this.titleBGM.pause();
-                this.titleBGM.currentTime = 0;
-            }
-            if (this.stageBGM) {
-                this.stageBGM.pause();
-                this.stageBGM.currentTime = 0;
-            }
-            if (this.gameoverBGM) {
-                this.gameoverBGM.pause();
-                this.gameoverBGM.currentTime = 0;
-            }
-            this.currentBGM = null;
-            console.log('🎵 全BGM停止');
-        } catch (error) {
-            console.error('❌ BGM停止エラー:', error);
-        }
-    }
+	stopAllBGM() {
+	    try {
+	        if (this.titleBGM) {
+	            this.titleBGM.pause();
+	            this.titleBGM.currentTime = 0;
+	        }
+	        if (this.stageBGM) {
+	            this.stageBGM.pause();
+	            this.stageBGM.currentTime = 0;
+	        }
+	        if (this.gameoverBGM) {
+	            this.gameoverBGM.pause();
+	            this.gameoverBGM.currentTime = 0;
+	        }
+	        if (this.rankingBGM) {
+	            this.rankingBGM.pause();
+	            this.rankingBGM.currentTime = 0;
+	        }
+	        this.currentBGM = null;
+	        console.log('🎵 全BGM停止');
+	    } catch (error) {
+	        console.error('❌ BGM停止エラー:', error);
+	    }
+	}
     
     resumeCurrentBGM() {
         try {
@@ -1020,26 +1188,20 @@
     }
 }
 
-// グローバル変数
-let soundManager;
-        // handleStartScreenClick関数を追加
-        function handleStartScreenClick(event) {
-            if (event.target.id === 'startButton') return;
-            if (event.target.id === 'rankingButton') return;
-            startGame();
-        }
+	// グローバル変数
+	let soundManager;
     
         // ランキング機能
         async function submitScore() {
-    console.log('📝 submitScore関数開始');
+    	console.log('📝 submitScore関数開始');
     
-    const playerName = document.getElementById('playerNameInput').value.trim();
-    console.log('👤 入力された名前:', playerName);
+    	const playerName = document.getElementById('playerNameInput').value.trim();
+    	console.log('👤 入力された名前:', playerName);
     
-    if (!playerName) { 
+    	if (!playerName) { 
         alert('お名前を入力してください！'); 
         return; 
-    }
+    	}
     
     try {
         console.log('🔥 Firebase送信開始');
@@ -1071,26 +1233,50 @@ let soundManager;
 
         let currentRankingType = 'score'; // デフォルトはスコア
 
-        async function showRanking() {
-            console.log('🏆 ランキング画面表示開始');
+async function showRanking() {
+    console.log('🏆 ランキング画面表示開始');
+
+    // ランキングBGM再生
+    if (soundManager) {
+        soundManager.playBGM('ranking');
+        console.log('🎵 ランキングBGM再生開始');
+    }
+
+    const rankingScreen = document.getElementById('rankingScreen');
     
-            document.getElementById('startScreen').classList.add('hidden');
+    // 確実にbodyの直下に移動
+    document.body.appendChild(rankingScreen);
     
-            const rankingScreen = document.getElementById('rankingScreen');
-            rankingScreen.classList.remove('hidden');
-            rankingScreen.style.display = 'flex';
+    // 強制的にスタイルを設定
+    rankingScreen.style.cssText = `
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0,0,0,0.9) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        z-index: 999999 !important;
+        padding: 10px !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    `;
     
-            // デフォルトでスコアランキングを表示
-            showRankingByType('score');
-    
-            // ランキングリスト専用のタッチイベント処理を追加
-            setTimeout(() => {
-                const rankingList = document.getElementById('rankingList');
-                if (rankingList) {
-            // タッチイベントの伝播を停止
+    rankingScreen.classList.remove('hidden');
+
+    // デフォルトでスコアランキングを表示
+    showRankingByType('score');
+
+    // ランキングリスト専用のタッチイベント処理を追加
+    setTimeout(() => {
+        const rankingList = document.getElementById('rankingList');
+        if (rankingList) {
             rankingList.addEventListener('touchstart', (e) => {
                 e.stopPropagation();
-                });
+            });
             rankingList.addEventListener('touchmove', (e) => {
                 e.stopPropagation();
             });
@@ -1100,7 +1286,6 @@ let soundManager;
         }
     }, 100);
 }
-
         async function showRankingByType(type) {
             console.log(`🏆 ${type}ランキング表示開始`);
             currentRankingType = type;
@@ -1192,20 +1377,49 @@ let soundManager;
             }
         }
 
-        function hideRanking() {
-            console.log('🔙 ランキング画面を非表示');
-            showStartScreen(); // 新しい関数を使用
-        }
-    function showUpdateHistory() {
+function hideRanking() {
+    console.log('🔙 ランキング画面を非表示');
+    
+    // タイトルBGMに戻す
+    if (soundManager) {
+        soundManager.playBGM('title');
+        console.log('🎵 タイトルBGMに復帰');
+    }
+    
+    const rankingScreen = document.getElementById('rankingScreen');
+    rankingScreen.classList.add('hidden');
+    rankingScreen.style.display = 'none';
+}
+
+function showUpdateHistory() {
     console.log('📝 更新履歴画面表示');
     
-    document.getElementById('startScreen').classList.add('hidden');
-    
     const updateHistoryScreen = document.getElementById('updateHistoryScreen');
-    updateHistoryScreen.classList.remove('hidden');
-    updateHistoryScreen.style.display = 'flex';
     
-    // 更新履歴リスト専用のタッチイベント処理
+    // 確実にbodyの直下に移動
+    document.body.appendChild(updateHistoryScreen);
+    
+    // 強制的にスタイルを設定
+    updateHistoryScreen.style.cssText = `
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0,0,0,0.9) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        z-index: 999999 !important;
+        padding: 10px !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    `;
+    
+    updateHistoryScreen.classList.remove('hidden');
+    
+    // 更新履歴リスト専用のタッチイベント処理を追加
     setTimeout(() => {
         const updateHistoryList = document.getElementById('updateHistoryList');
         if (updateHistoryList) {
@@ -1225,15 +1439,71 @@ let soundManager;
 function hideUpdateHistory() {
     console.log('🔙 更新履歴画面を非表示');
     
-    // 更新履歴画面を非表示
     const updateHistoryScreen = document.getElementById('updateHistoryScreen');
     updateHistoryScreen.classList.add('hidden');
     updateHistoryScreen.style.display = 'none';
-    
-    // タイトル画面を表示
-    document.getElementById('startScreen').classList.remove('hidden');
 }
 
+        // ★★★ ここに新しい関数を追加 ★★★
+        function showSplashScreen() {
+	    document.getElementById('splashScreen').style.display = 'flex';
+	    document.getElementById('startScreen').classList.add('hidden');
+	}
+
+        function startApp() {
+	    console.log('🎵 PWA音声初期化開始');
+    
+   	 try {
+        	soundManager = new SoundManager();
+       	 console.log('✅ SoundManager初期化成功');
+   	 } catch (error) {
+       	 console.error('❌ SoundManager初期化失敗:', error);
+       	 soundManager = null;
+    	}
+    
+    	document.getElementById('splashScreen').style.display = 'none';
+　　    document.getElementById('startScreen').classList.remove('hidden');
+    
+    	if (soundManager && soundManager.playBGM) {
+        	try {
+            	soundManager.playBGM('title');
+            	console.log('🎵 タイトルBGM再生開始');
+       	 } catch (error) {
+        	    console.log('⚠️ タイトルBGM再生エラー:', error);
+       	 }
+   	 } else {
+       	 console.log('⚠️ BGM再生をスキップ（soundManager未初期化）');
+    	}
+}
+
+function handleTitleScreenClick(event) {
+    console.log('🎮 タイトル画面タップ検出:', event.target.id); // デバッグ用にクリックされた要素のIDを表示
+
+    // ランキングボタンが押された場合
+    if (event.target.id === 'rankingButton') {
+        console.log('🏆 ランキングボタン処理実行');
+        showRanking();
+        return; // ゲーム開始処理を中断
+    }
+
+    // 更新履歴ボタンが押された場合
+    if (event.target.id === 'updateHistoryButton') {
+        console.log('📝 更新履歴ボタン処理実行');
+        showUpdateHistory();
+        return; // ゲーム開始処理を中断
+    }
+
+    // ボタン（game-buttonクラスを持つ要素）が押された場合も、ゲーム開始しないようにする
+    if (event.target.classList.contains('game-button')) {
+        console.log('その他のボタンがクリックされました。ゲームは開始しません。');
+        return;
+    }
+    
+    // 上記のどのボタンでもない場所（画面の背景など）がタップされたらゲーム開始
+    console.log('🚀 ゲーム開始実行');
+    startGame();
+}
+    
         function showNameInput() {
     console.log('👤 showNameInput関数開始');
     
@@ -2571,94 +2841,112 @@ function hideUpdateHistory() {
             }
         }
         
-        function startGame() {
-            console.log('ゲーム開始！');
-
-            // ファイルテスト
-            console.log('title BGM object:', soundManager.titleBGM);
-            console.log('stage BGM object:', soundManager.stageBGM);
-            console.log('gameover BGM object:', soundManager.gameoverBGM);
-
-            // stage BGMを再生
-            if (soundManager) {
-                soundManager.playBGM('stage');  // ゲーム中BGM
-                console.log('🎵 ステージBGM再生試行');
-            }
-            
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                requestFullscreen();
-            }
-            
-            gameState.gameStarted = true;
-            gameState.gamePaused = false;
-            document.getElementById('startScreen').classList.add('hidden');
-            document.getElementById('pauseScreen').classList.add('hidden');
-            
-            // ゲーム開始時に更新間隔を調整
-            startSmartUpdateCheck();
-            
-            window.scrollTo(0, 1);
+	function startGame() {
+    console.log('ゲーム開始！');
+    
+    // stage BGMを再生
+    if (soundManager && soundManager.playBGM) {
+        try {
+            soundManager.playBGM('stage');  // ゲーム中BGM
+            console.log('🎵 ステージBGM再生試行');
+        } catch (error) {
+            console.log('⚠️ BGM再生エラー:', error);
         }
+    } else {
+        console.log('⚠️ soundManager未初期化');
+    }
+    
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        requestFullscreen();
+    }
+    
+    gameState.gameStarted = true;
+    gameState.gamePaused = false;
+    
+    // startScreenを確実に非表示
+    const startScreen = document.getElementById('startScreen');
+    startScreen.classList.add('hidden');
+    startScreen.style.display = 'none'; // ←追加
+    
+    document.getElementById('pauseScreen').classList.add('hidden');
+    
+    // UI要素の表示/非表示制御
+    document.getElementById('titleButtons').style.display = 'none';
+    document.getElementById('startMessage').style.display = 'none';
+    document.getElementById('ui').style.display = 'block'; // ←重要
+    
+    startSmartUpdateCheck();
+    window.scrollTo(0, 1);
+}
         
         function resetGame() {
-            gameState.score = 0;
-            gameState.lives = 3;
-            gameState.gameStarted = false;
-            gameState.gamePaused = false;
-            gameState.enemySpawnTimer = 0;
-            gameState.platformSpawnTimer = 0;
-            gameState.coinSpawnTimer = 0;
-            gameState.flyingEnemySpawnTimer = 0;
-            gameState.powerUpSpawnTimer = 0;
-            gameState.distance = 0;
-            gameState.gameSpeed = BASE_AUTO_SCROLL_SPEED;
-            gameState.camera.x = 0;
-            gameState.camera.y = 0;
-            gameState.powerUpActive = false;
-            gameState.powerUpTimer = 0;
-            gameState.powerUpType = null;
-            gameState.isInvincible = false;
-            gameState.invincibleTimer = 0;
-            gameState.speedLevel = 1;
-            gameState.lastSpeedUpDistance = 0;
-            gameState.speedUpNotification = false;
-            gameState.speedUpNotificationTimer = 0;
-            gameState.downSwipeTimer = 0;
-            gameState.downSwipeActive = false;
-            gameState.isRespawning = false;
-            gameState.enemyKills = 0;
-            
-            player.x = 150;
-            player.y = 350;
-            player.velX = 0;
-            player.velY = 0;
-            player.onGround = false;
-            player.facing = 'right';
-            
-            coins = [];
-            enemies = [];
-            platforms = [];
-            flyingEnemies = [];
-            powerUps = [];
-            
-            initTerrain();
-            
-        document.getElementById('startScreen').classList.remove('hidden');
-        document.getElementById('pauseScreen').classList.add('hidden');
-        document.getElementById('pauseButton').textContent = '⏸️';
-
-        // リセット時に更新間隔を調整
-        startSmartUpdateCheck();
-
-        // タイトル画面表示確認
-        console.log('🔄 リセット完了：タイトル画面表示確認');
-
-        // タイトルBGM再生を追加 ←
-        if (soundManager) {
-            soundManager.playBGM('title');
-            console.log('🎵 リセット時：タイトルBGM再生開始');
-        }
+    gameState.score = 0;
+    gameState.lives = 3;
+    gameState.gameStarted = false;
+    gameState.gamePaused = false;
+    gameState.enemySpawnTimer = 0;
+    gameState.platformSpawnTimer = 0;
+    gameState.coinSpawnTimer = 0;
+    gameState.flyingEnemySpawnTimer = 0;
+    gameState.powerUpSpawnTimer = 0;
+    gameState.distance = 0;
+    gameState.gameSpeed = BASE_AUTO_SCROLL_SPEED;
+    gameState.camera.x = 0;
+    gameState.camera.y = 0;
+    gameState.powerUpActive = false;
+    gameState.powerUpTimer = 0;
+    gameState.powerUpType = null;
+    gameState.isInvincible = false;
+    gameState.invincibleTimer = 0;
+    gameState.speedLevel = 1;
+    gameState.lastSpeedUpDistance = 0;
+    gameState.speedUpNotification = false;
+    gameState.speedUpNotificationTimer = 0;
+    gameState.downSwipeTimer = 0;
+    gameState.downSwipeActive = false;
+    gameState.isRespawning = false;
+    gameState.enemyKills = 0;
+    
+    player.x = 150;
+    player.y = 350;
+    player.velX = 0;
+    player.velY = 0;
+    player.onGround = false;
+    player.facing = 'right';
+    
+    coins = [];
+    enemies = [];
+    platforms = [];
+    flyingEnemies = [];
+    powerUps = [];
+    
+    initTerrain();
+    
+    // startScreenを確実に表示
+    const startScreen = document.getElementById('startScreen');
+    startScreen.classList.remove('hidden');
+    startScreen.style.display = 'block'; // ←追加
+    
+    document.getElementById('pauseScreen').classList.add('hidden');
+    document.getElementById('pauseButton').textContent = '⏸️';
+    
+    // UI要素の表示/非表示制御
+    document.getElementById('ui').style.display = 'none';
+    document.getElementById('titleButtons').style.display = 'flex';
+    document.getElementById('startMessage').style.display = 'block';
+    
+    // リセット時に更新間隔を調整
+    startSmartUpdateCheck();
+    
+    // タイトル画面表示確認
+    console.log('🔄 リセット完了：タイトル画面表示確認');
+    
+    // タイトルBGM再生
+    if (soundManager) {
+        soundManager.playBGM('title');
+        console.log('🎵 リセット時：タイトルBGM再生開始');
     }
+}
         
         function render() {
             const gradient = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
@@ -2935,12 +3223,6 @@ function hideUpdateHistory() {
             // デバッグ用：全てのキー入力をログ
             console.log(`🎮 キー入力: ${e.key}, ゲーム状態: started=${gameState.gameStarted}, paused=${gameState.gamePaused}`);
             
-            if (!gameState.gameStarted && (e.key === ' ' || e.key === 'Enter')) {
-                e.preventDefault();
-                startGame();
-                return;
-            }
-            
             if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
                 e.preventDefault();
                 pauseGame();
@@ -3200,10 +3482,10 @@ function hideUpdateHistory() {
             console.log('🎮 ゲーム初期化開始...');
 
             // 効果音システム初期化
-            soundManager = new SoundManager();
+            // soundManager = new SoundManager();
             
             try {
-                // タイトル画像をランダムに選択（全29枚）
+                // タイトル画像をランダムに選択（全35枚）
                 const titleImages = [
                     'https://img.fpack.jp/shop/nyanpon/images/173986677576251900.jpg',
                     'https://pbs.twimg.com/media/GjvkMpDbgAApxmV?format=jpg&name=large',
@@ -3233,7 +3515,13 @@ function hideUpdateHistory() {
                     'https://pbs.twimg.com/media/F8FVHdwbYAAL-a1?format=jpg&name=large',
                     'https://pbs.twimg.com/media/F8FVHdxaAAA78Zg?format=jpg&name=medium',
                     'https://pbs.twimg.com/media/F2nRkPCbcAAWcEg?format=jpg&name=large',
-                    'https://pbs.twimg.com/media/Gq0121oXEAAaCfx?format=jpg&name=large'
+                    'https://pbs.twimg.com/media/Gq0121oXEAAaCfx?format=jpg&name=large',
+                    'https://github.com/RhynAkesora/piyo/blob/main/IMG_1509.jpeg?raw=true',
+                    'https://github.com/RhynAkesora/piyo/blob/main/IMG_1538.jpeg?raw=true',
+                    'https://pbs.twimg.com/media/GsxRrUwagAACft6?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GsXHt-GaoAAxmfi?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/Gr9h-Q5WkAAsg3W?format=jpg&name=large',
+                    'https://pbs.twimg.com/media/GrKKOACWIAAfJNN?format=jpg&name=large',
                 ];
                 
                 const randomIndex = Math.floor(Math.random() * titleImages.length);
@@ -3270,10 +3558,13 @@ function hideUpdateHistory() {
             }
 
                 // タイトル画面BGM追加 ←
-                if (soundManager) {
-                soundManager.playBGM('title');
-                console.log('🎵 タイトルBGM再生開始');
-                }
+                // if (soundManager) {
+                // soundManager.playBGM('title');
+                // console.log('🎵 タイトルBGM再生開始');
+                //}
+
+                // ★★★ ここに追加 ★★★
+                showSplashScreen();
             }
         
         function checkOrientation() {
@@ -3419,10 +3710,12 @@ function hideUpdateHistory() {
                 nameInputScreen.style.display = 'none';
             }
             
-            if (soundManager) {
-                soundManager.playBGM('title');
-                console.log('🎵 タイトル画面表示：タイトルBGM再生');
-            }
+            // ★★★ この行を変更 ★★★
+            // if (soundManager) {
+            //     soundManager.playBGM('title');
+            //     console.log('🎵 タイトル画面表示：タイトルBGM再生');
+            // }
+            startApp(); // ← この1行に変更
         }
 
     </script>
