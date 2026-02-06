@@ -442,8 +442,8 @@
                 color: #fff; font-size: 1.2vw;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 font-weight: bold; justify-content: center;">
-                <span style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px;">Ver.0.951</span>
-                <span style="font-size: 1.0vw; opacity: 0.8; font-weight: normal;">LastUpDate 2025/06/08 23:20</span>
+                <span style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px;">Ver.1.000</span>
+                <span style="font-size: 1.0vw; opacity: 0.8; font-weight: normal;">LastUpDate 2026/02/07</span>
             </div>
 
             <div id="titleButtons" style="
@@ -535,8 +535,14 @@
                 color: #fff; font-size: 2.5vw;
                 -webkit-overflow-scrolling: touch;
                 touch-action: pan-y; overscroll-behavior: contain;">
-                <div style="color: #ffd700; font-weight: bold; margin-bottom: 15px; text-align: center; font-size: 3vw;">最終更新日: 2025/06/08 23:20</div>
+                <div style="color: #ffd700; font-weight: bold; margin-bottom: 15px; text-align: center; font-size: 3vw;">最終更新日: 2026/02/07</div>
                 <div style="color: #fff; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #8a2be2; padding-bottom: 5px;">📝 直近の更新内容</div>
+                <div style="margin-bottom: 8px; padding-left: 5px;">• コード全体のリファクタリング・バグ修正</div>
+                <div style="margin-bottom: 8px; padding-left: 5px;">• HTML構文エラーの修正</div>
+                <div style="margin-bottom: 8px; padding-left: 5px;">• フレームレート依存の速度問題を修正（固定60fpsタイムステップ導入）</div>
+                <div style="margin-bottom: 8px; padding-left: 5px;">• 画面遷移ロジックの安定化</div>
+                <div style="margin-bottom: 8px; padding-left: 5px;">• Firebase未接続時のフォールバック処理を追加</div>
+                <div style="color: #fff; font-weight: bold; margin: 15px 0 10px; border-bottom: 1px solid #8a2be2; padding-bottom: 5px;">📝 過去の更新内容</div>
                 <div style="margin-bottom: 8px; padding-left: 5px;">• 表示位置の微調整</div>
                 <div style="margin-bottom: 8px; padding-left: 5px;">• ランキング用BGMを実装</div>
                 <div style="margin-bottom: 8px; padding-left: 5px;">• アクセス画面を追加</div>
@@ -593,7 +599,7 @@
 
 <script>
 /* ============================================================
- *  ぴよ氏の冒険 v0.951
+ *  ぴよ氏の冒険 v1.000
  *  © 2025 Created by 喜びおじさん
  * ============================================================ */
 
@@ -627,7 +633,7 @@ const SPEED_UP_RATE       = 0.20;  // 20%ずつ
 const MAX_SPEED_PERCENT   = 500;
 const DOWN_SWIPE_FRAMES   = 30;    // 0.5s
 
-const CURRENT_VERSION     = '0.951';
+const CURRENT_VERSION     = '1.000';
 
 // ─── キャンバス ───
 const canvas = document.getElementById('gameCanvas');
