@@ -425,15 +425,15 @@
         </div>
 
         <!-- タイトル画面 -->
-        <div id="startScreen" class="overlay hidden" onclick="handleTitleScreenClick(event)" style="position: relative; width: 100vw; height: 100vh; overflow: hidden;">
+        <div id="startScreen" class="overlay hidden" style="position: relative; width: 100vw; height: 100vh; overflow: hidden;">
             <img src="https://github.com/RhynAkesora/piyo/blob/main/logo.png?raw=true" alt="ロゴ" style="
                 position: absolute; top: -3%; left: 50%;
                 transform: translateX(-50%);
                 width: 25vw; height: auto; z-index: 10;">
             <img id="titleImage" src="" alt="ぴよ氏の冒険" style="
-                position: absolute; top: 18vh; left: 0;
-                width: 100vw; height: 65vh;
-                object-fit: contain; z-index: 1;">
+                position: absolute; top: 0; left: 0;
+                width: 100vw; height: 100vh;
+                object-fit: cover; z-index: 1;">
 
             <div style="
                 position: absolute; bottom: 8vh; left: 50%;
@@ -870,9 +870,7 @@ function startApp() {
 }
 
 function handleTitleScreenClick(e) {
-    var id = e.target.id;
-    if (id === 'rankingButton')       { showRanking(); return; }
-    if (id === 'updateHistoryButton') { showUpdateHistory(); return; }
+    if (e.target.closest('#titleButtons')) return;
     if (e.target.classList.contains('game-button')) return;
     startGame();
 }
@@ -2123,6 +2121,44 @@ function initialize() {
     setRandomTitleImage();
     initTerrain();
     resizeCanvas();
+
+    // タイトル画面のイベント設定
+    var startScreen = document.getElementById('startScreen');
+    var rankingBtn = document.getElementById('rankingButton');
+    var historyBtn = document.getElementById('updateHistoryButton');
+
+    // ボタンはtouchendで即反応（clickより先に発火）
+    rankingBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        showRanking();
+    });
+    rankingBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        showRanking();
+    });
+
+    historyBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        showUpdateHistory();
+    });
+    historyBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        showUpdateHistory();
+    });
+
+    // タイトル画面の背景タップでゲーム開始
+    startScreen.addEventListener('click', function(e) {
+        handleTitleScreenClick(e);
+    });
+    startScreen.addEventListener('touchend', function(e) {
+        if (e.target.closest('#titleButtons')) return;
+        if (e.target.classList.contains('game-button')) return;
+        e.preventDefault();
+        startGame();
+    });
+
     requestAnimationFrame(gameLoop);
     showSplashScreen();
 }
