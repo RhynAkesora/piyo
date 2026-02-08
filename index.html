@@ -126,7 +126,7 @@
             display: block;
         }
         @media (min-width: 600px) {
-            #titleImage { width: auto; height: auto; max-width: 60vw; max-height: 40vh; }
+            #titleImage { max-width: 50vw; max-height: 65vh; }
         }
 
         /* --- ボタン共通 --- */
@@ -414,7 +414,7 @@
                 ⚠️ 注意 ⚠️<br>本作品は対象年齢を2歳以上と設定しております
             </div>
             <div style="color: #fff; font-size: 2.5vw; text-align: center; font-family: Arial, sans-serif; line-height: 1.8;">
-                Music by 喜びおじさん<br>Created by 喜びおじさん
+                Music by NullPo Games<br>Created by NullPo Games
             </div>
             <div class="tap-text" style="color: #fff; font-size: 8vw; font-weight: bold; text-align: center; font-family: Arial, sans-serif;">
                 Please Tap
@@ -431,9 +431,13 @@
                 transform: translateX(-50%);
                 width: 25vw; height: auto; z-index: 10;">
             <img id="titleImage" src="" alt="ぴよ氏の冒険" style="
-                position: absolute; top: 0; left: 0;
-                width: 100vw; height: 100vh;
-                object-fit: cover; z-index: 1;">
+                position: absolute; top: 50%; left: 50%;
+                transform: translate(-50%, -50%);
+                max-width: 85vw; max-height: 75vh;
+                width: auto; height: auto;
+                object-fit: contain; z-index: 1;
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
 
             <div style="
                 position: absolute; bottom: 8vh; left: 50%;
@@ -442,7 +446,7 @@
                 color: #fff; font-size: 1.2vw;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 font-weight: bold; justify-content: center;">
-                <span style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px;">Ver.1.000</span>
+                <span style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px;">Ver.1.01</span>
                 <span style="font-size: 1.0vw; opacity: 0.8; font-weight: normal;">LastUpDate 2026/02/07</span>
             </div>
 
@@ -599,7 +603,7 @@
 
 <script>
 /* ============================================================
- *  ぴよ氏の冒険 v1.000
+ *  ぴよ氏の冒険 v1.01
  *  © 2025 Created by 喜びおじさん
  * ============================================================ */
 
@@ -633,7 +637,7 @@ const SPEED_UP_RATE       = 0.20;  // 20%ずつ
 const MAX_SPEED_PERCENT   = 500;
 const DOWN_SWIPE_FRAMES   = 30;    // 0.5s
 
-const CURRENT_VERSION     = '1.000';
+const CURRENT_VERSION     = '1.01';
 
 // ─── キャンバス ───
 const canvas = document.getElementById('gameCanvas');
